@@ -124,6 +124,16 @@ class TestCli(object):
 
     @patch("sceptre.cli.os.getcwd")
     @patch("sceptre.cli.get_env")
+    def test_import_env(
+            self, mock_get_env, mock_getcwd
+    ):
+        mock_getcwd.return_value = sentinel.cwd
+        retval = self.runner.invoke(cli, ["import-env", "dev"])
+        mock_get_env.assert_called_with(sentinel.cwd, "dev", {})
+        mock_get_env.return_value.import_env.assert_called_with()
+
+    @patch("sceptre.cli.os.getcwd")
+    @patch("sceptre.cli.get_env")
     def test_lock_stack(self, mock_get_env, mock_getcwd):
         mock_getcwd.return_value = sentinel.cwd
         self.runner.invoke(cli, ["lock-stack", "dev", "vpc"])

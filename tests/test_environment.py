@@ -295,6 +295,44 @@ class TestEnvironment(object):
             config_path='environment_path/fake-sceptre-stack'
         )
 
+    @patch("sceptre.stack.Stack.import_stack")
+    @patch("sceptre.environment.ConnectionManager")
+    @patch("sceptre.environment.Environment._get_config")
+    def test_import_env(
+            self, mock_get_config, mock_ConnectionManager,
+            mock_import_stack
+    ):
+        mock_config = {
+            "region": sentinel.region,
+            "iam_role": sentinel.iam_role,
+            "profile": sentinel.profile
+        }
+        mock_get_config.return_value = mock_config
+        mock_ConnectionManager.return_value = Mock()
+        mock_ConnectionManager.return_value.call.return_value = {
+            'Stacks': [
+                {
+                    'StackName': 'fake-aws-stack'
+                }
+            ]
+        }
+
+        self.environment.import_env()
+
+        mock_ConnectionManager.assert_called_once_with(
+            region=sentinel.region,
+            iam_role=sentinel.iam_role,
+            profile=sentinel.profile
+        )
+
+        mock_import_stack.assert_called_once_with(
+            environment_config=mock_config,
+            connection_manager=mock_ConnectionManager.return_value,
+            aws_stack_name='fake-aws-stack',
+            template_path='templates/aws-import/fake-aws-stack.yaml',
+            config_path='environment_path/fake-aws-stack'
+        )
+        
     @patch("sceptre.environment.wait")
     @patch("sceptre.environment.ThreadPoolExecutor")
     def test_build(self, mock_ThreadPoolExecutor, mock_wait):

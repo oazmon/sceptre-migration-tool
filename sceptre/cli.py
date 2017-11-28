@@ -24,13 +24,13 @@ from boto3.exceptions import Boto3Error
 from botocore.exceptions import BotoCoreError, ClientError
 from jinja2.exceptions import TemplateError
 
+import sceptre.importer.environment as importer
 from .config import ENVIRONMENT_CONFIG_ATTRIBUTES
 from .environment import Environment
 from .exceptions import SceptreException, ProjectAlreadyExistsError
 from .stack_status import StackStatus, StackChangeSetStatus
 from .stack_status_colourer import StackStatusColourer
 from . import __version__
-
 
 def environment_options(func):
     """
@@ -194,7 +194,20 @@ def import_stack(ctx, environment, stack, aws_stack_name, template_path):
             aws_stack_name + ".yaml"
         )
     env = get_env(ctx.obj["sceptre_dir"], environment, ctx.obj["options"])
-    env.import_stack(aws_stack_name, stack, template_path)
+    importer.import_stack(env._get_config(), env.path, aws_stack_name, stack, template_path)
+    return "All's well"
+
+
+@cli.command(name="import-env")
+@environment_options
+@click.pass_context
+@catch_exceptions
+def import_env(ctx, environment):
+    """
+    Import a Sceptre environment from a set of AWS CloudFormation stacks.
+    """
+    env = get_env(ctx.obj["sceptre_dir"], environment, ctx.obj["options"])
+    importer.import_env(env._get_config(), env.path)
 
 
 @cli.command(name="lock-stack")
