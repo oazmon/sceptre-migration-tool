@@ -4,25 +4,27 @@ layout: page
 
 # About
 
-Sceptre is a tool to drive Cloudformation. Sceptre manages the creating, updating and deletion of stacks, and provides meta commands to allow users to get information about their stacks. Sceptre is unopinionated, enterprise ready and designed to be run as part of CI/CD pipelines. Sceptre is accessible as a CLI tool, or as a Python module.
+Sceptre Migration Tool is a tool to import configuration from AWS into Sceptre. Currently, the tool imports AWS Cloudformation scripts.
+The tool is accessible as a CLI tool, or as a Python module.
 
 
 ## Motivation
 
-CloudFormation lacks a robust tool to deploy and manage stacks. The AWS CLI and Boto3 both provide some functionality, but neither offer the chaining of one stack's outputs to another's parameters or easy support for working with role assumes or in multiple accounts, all of which are common tasks when deploying infrastructure.
+Many teams start creating CloudFormation manually or with other tools and with to migrate to use Sceptre. This could be a delicate process to do manually.
+This tool imports the stacks as-is and allow further incremental massaging, to make the process of migration more Robust.
 
-Sceptre was developed to produce a single tool which can be used to deploy any and all CloudFormation. It is intended to replace boilerplate scripts currently used.
+The migration tool was developed separate from Sceptre (it imports Sceptre internally) to reduce the complexity of the core code for what is basically a one time use.
 
 
 ## Overview
 
-Sceptre is used by defining CloudFormation, Jinja2 or Python templates, and corresponding YAML config files. The config files include which account and region to use, and the parameters to be supplied to the templates.
+The migration tool is used by a relationship between AWS Cloudformation stacks and the corresponding template files and YAML config files in the Sceptre configuration directory tree.
 
-For a tutorial on using Sceptre, see [Get Started]({{ site.baseurl }}/docs/get_started.html), or find out more information about Sceptre below.
+For a tutorial on using Sceptre, see [Get Started](https://sceptre.cloudreach.com/latest/docs/get_started.html).
 
 
 ## Code
 
-Sceptre's source code can be found on [Github](https://github.com/cloudreach/sceptre/).
+Sceptre Migration Tools source code can be found on [Github](https://github.intuit.com/SBSEG-EPIC/sceptre-migration-tool).
 
-Bugs and feature requests should be raised via our [Issues](https://github.com/cloudreach/sceptre/issues) page.
+Bugs and feature requests should be raised via our [Issues](https://github.intuit.com/SBSEG-EPIC/sceptre-migration-tool/issues) page.

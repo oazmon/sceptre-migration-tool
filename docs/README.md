@@ -1,6 +1,6 @@
 # Docs
 
-This directory contains the code for Sceptre's [docs](https://sceptre.cloudreach.com).
+This directory contains the code for Sceptre Migration Tool [docs](https://sceptre.intuit.com).
 
 The docs is written using the [Jekyll](https://jekyllrb.com) framework.
 

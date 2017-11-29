@@ -18,7 +18,7 @@ Thanks for your interest in Sceptre Migration Tool! We greatly appreciate any co
 Code of Conduct
 ---------------
 
-This project adheres to the Contributor Covenant `code of conduct <http://contributor-covenant.org/version/1/4/>`_. By participating, you are expected to uphold this code. Please report unacceptable behaviour to sceptre@cloudreach.com.
+This project adheres to the Contributor Covenant `code of conduct <http://contributor-covenant.org/version/1/4/>`_. By participating, you are expected to uphold this code. Please report unacceptable behaviour to oazmon@intuit.com.
 
 
 How to Contribute
@@ -74,7 +74,7 @@ Get Started
 
     $ git clone git@github.org:<github_username>/sceptre_migration_tool.git
 
-3. Install sceptre for development (we recommend you use a `virtual environment <http://docs.python-guide.org/en/latest/dev/virtualenvs/>`_):
+3. Install sceptre migration tool for development (we recommend you use a `virtual environment <http://docs.python-guide.org/en/latest/dev/virtualenvs/>`_):
 
    .. code-block:: shell
 
@@ -103,7 +103,7 @@ Get Started
       $ make test
       $ make coverage
 
-   Note: Sceptre aims to be compatible with Python 2 & 3, please run unit test against both versions. You will need the corresponding versions of Python installed on your system.
+   Note: Sceptre Migration Tool aims to be compatible with Python 2 & 3, please run unit test against both versions. You will need the corresponding versions of Python installed on your system.
 
    Run unit tests and coverage using tox for Python 2.7 and 3.6:
 

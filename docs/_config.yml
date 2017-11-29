@@ -13,13 +13,13 @@
 # you will see them accessed via {{ site.title }}, {{ site.email }}, and so on.
 # You can create any custom variable you would like, and they will be accessible
 # in the templates via {{ site.myvariable }}.
-title: Sceptre
-email: sceptre@cloudreach.com
+title: Sceptre Migration Tool
+email: oazmon@intuit.com
 description: > # this means to ignore newlines until "baseurl:"
-  Build better AWS infrastructure
+  Migrate AWS Cloudformation from AWS to Sceptre
 baseurl: "" # the subpath of your site, e.g. /blog
-url: "https://sceptre.cloudreach.com" # the base hostname & protocol for your site, e.g. http://example.com
-github_username:  cloudreach
+url: "https://sceptre.intuit.com" # the base hostname & protocol for your site, e.g. http://example.com
+github_username:  oazmon
 
 # Build settings
 markdown: kramdown

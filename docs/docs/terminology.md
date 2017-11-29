@@ -29,5 +29,5 @@ The following terms will be used though the rest of the Sceptre documentation:
                     └── vpc.yaml
     ```
 
-- **Launch**: In the context of Sceptre commands, `launch` means to try to `create` a stack. If the stack has already been created, Sceptre tries to `update` the stack. If there are no updates to be performed, `launch` returns a zero exit code.
+- **Import**: In the context of Sceptre Migration Tool commands, `import` means to create a Sceptre stack config file and template file from an AWS existing stack.
 - **Sceptre Directory**: The directory which stores the top level config directory.
