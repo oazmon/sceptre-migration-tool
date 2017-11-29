@@ -79,13 +79,25 @@ class TestEnvironment(object):
         }
         mock_get_config.return_value = mock_config
         mock_ConnectionManager.return_value = Mock()
-        mock_ConnectionManager.return_value.call.return_value = {
-            'Stacks': [
-                {
-                    'StackName': 'fake-aws-stack'
-                }
-            ]
-        }
+
+        mock_ConnectionManager.return_value.call.side_effect = [
+            {
+                'Stacks': [
+                    {
+                        'StackName': 'fake-aws-stack1'
+                    }
+                ],
+                'NextToken': 'StackName2'
+            },
+            {
+                'Stacks': [
+                    {
+                        'StackName': 'fake-aws-stack2'
+                    }
+                ]
+            }
+        ]
+        
 
         migrator.import_env(self.environment)
 
@@ -94,11 +106,21 @@ class TestEnvironment(object):
             iam_role=sentinel.iam_role,
             profile=sentinel.profile
         )
+        
+        assert 2 == mock_import_stack.call_count
 
-        mock_import_stack.assert_called_once_with(
+        mock_import_stack.assert_any_call(
             environment_config=mock_config,
             connection_manager=mock_ConnectionManager.return_value,
-            aws_stack_name='fake-aws-stack',
-            template_path='templates/aws-import/fake-aws-stack.yaml',
-            config_path='environment_path/fake-aws-stack'
+            aws_stack_name='fake-aws-stack1',
+            template_path='templates/aws-import/fake-aws-stack1.yaml',
+            config_path='environment_path/fake-aws-stack1'
+        )
+
+        mock_import_stack.assert_any_call(
+            environment_config=mock_config,
+            connection_manager=mock_ConnectionManager.return_value,
+            aws_stack_name='fake-aws-stack2',
+            template_path='templates/aws-import/fake-aws-stack2.yaml',
+            config_path='environment_path/fake-aws-stack2'
         )

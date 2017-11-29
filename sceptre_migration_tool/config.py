@@ -55,7 +55,8 @@ def import_config(
                 file=config_file
             )
 
-        if 'Parameters' in response['Stacks'][0]:
+        if 'Parameters' in response['Stacks'][0] \
+                and response['Stacks'][0]['Parameters']:
             # we use YAML only as JSON is a subset
             def default_ctor(loader, tag_suffix, node):
                 return tag_suffix + ' ' + str(node.value)
@@ -63,13 +64,10 @@ def import_config(
             template_body = yaml.load(template.body)
 
             print('parameters:', file=config_file)
-            if response['Stacks'][0]['Parameters']:
-                parameter_list = sorted(
-                    response['Stacks'][0]['Parameters'],
-                    key=lambda x: x['ParameterKey']
-                )
-            else:
-                parameter_list = []
+            parameter_list = sorted(
+                response['Stacks'][0]['Parameters'],
+                key=lambda x: x['ParameterKey']
+            )
             template_parameters = template_body['Parameters'] \
                 if 'Parameters' in template_body else {}
             for parameter in parameter_list:

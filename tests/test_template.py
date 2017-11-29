@@ -108,9 +108,9 @@ class TestTemplate(object):
     def test__write_template__existing_same_file(self, mock_isfile, mock_open):
         mock_isfile.return_value = True
         mock_open.return_value.__enter__.return_value\
-            .read.return_value = 'fake-body'
+            .read.return_value = 'fake-body: !Ref value'
 
-        template._write_template('fake-path', 'fake-body')
+        template._write_template('fake-path', 'fake-body: !Ref value')
 
         mock_open.called_once_with('fake-path', 'r')
         mock_open.return_value.read.called_once()
