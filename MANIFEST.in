@@ -4,8 +4,6 @@ include HISTORY.rst
 include LICENSE
 include README.rst
 include requirements.txt
-include sceptre/stack_policies/lock.json
-include sceptre/stack_policies/unlock.json
 
 recursive-include tests *
 recursive-exclude * __pycache__

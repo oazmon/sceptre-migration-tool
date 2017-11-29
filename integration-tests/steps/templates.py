@@ -42,47 +42,6 @@ def step_impl(context, template_name):
     context.template_file_mtime = os.stat(filepath).st_mtime
 
 
-@when('the user validates the template for stack "{stack_name}"')
-def step_impl(context, stack_name):
-    environment_name, basename = os.path.split(stack_name)
-    env = Environment(context.sceptre_dir, environment_name)
-    try:
-        context.response = env.stacks[basename].validate_template()
-    except ClientError as e:
-        context.error = e
-
-
-@when('the user generates the template for stack "{stack_name}"')
-def step_impl(context, stack_name):
-    environment_name, basename = os.path.split(stack_name)
-    env = Environment(context.sceptre_dir, environment_name)
-    try:
-        context.output = env.stacks[basename].template.body
-    except Exception as e:
-        context.error = e
-
-
-@then('the output is the same as the contents of "{filename}" template')
-def step_impl(context, filename):
-    filepath = os.path.join(
-        context.sceptre_dir, "templates", filename
-    )
-    with open(filepath) as template:
-        body = template.read()
-    assert yaml.safe_load(body) == yaml.safe_load(context.output)
-
-
-@then('the output is the same as the string returned by "{filename}"')
-def step_impl(context, filename):
-    filepath = os.path.join(
-        context.sceptre_dir, "templates", filename
-    )
-
-    module = imp.load_source("template", filepath)
-    body = module.sceptre_handler({})
-    assert body == context.output
-
-
 @then('template "{template_name}" exists')
 def step_impl(context, template_name):
     filepath = os.path.join(

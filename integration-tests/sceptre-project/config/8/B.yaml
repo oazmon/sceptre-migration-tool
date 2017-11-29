@@ -1,2 +1,0 @@
-on_failure: DO_NOTHING
-template_path: templates/invalid_template.json

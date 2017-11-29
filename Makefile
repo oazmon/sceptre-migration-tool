@@ -49,7 +49,7 @@ clean-test:
 	rm -f test-results.xml
 
 lint:
-	flake8 sceptre tests
+	flake8 sceptre_migration_tool tests
 	python setup.py check -r -s -m
 
 test:
@@ -63,7 +63,7 @@ test-integration: install
 
 coverage-ci:
 	coverage erase
-	coverage run --source sceptre -m pytest
+	coverage run --source sceptre_migration_tool -m pytest
 	coverage html
 
 coverage: coverage-ci
@@ -71,9 +71,9 @@ coverage: coverage-ci
 	$(BROWSER) htmlcov/index.html
 
 docs:
-	rm -f docs/sceptre.rst
+	rm -f docs/sceptre_migration_tool.rst
 	rm -f docs/modules.rst
-	sphinx-apidoc -o docs/ sceptre
+	sphinx-apidoc -o docs/ sceptre_migration_tool
 	$(MAKE) -C docs clean
 	$(MAKE) -C docs html
 	$(BROWSER) docs/_build/html/index.html
@@ -82,9 +82,9 @@ servedocs: docs
 	watchmedo shell-command -p '*.rst' -c '$(MAKE) -C docs html' -R -D .
 
 docs-api:
-	rm -f docs/_api/sceptre.rst
+	rm -f docs/_api/sceptre_migration_tool.rst
 	rm -f docs/_api/modules.rst
-	sphinx-apidoc -o docs/_api sceptre
+	sphinx-apidoc -o docs/_api sceptre_migration_tool
 	$(MAKE) -C docs/_api clean
 	$(MAKE) -C docs/_api html
 	rm -rf docs/docs/api/

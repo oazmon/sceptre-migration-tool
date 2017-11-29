@@ -11,13 +11,7 @@ with open("HISTORY.rst") as history_file:
     history = history_file.read()
 
 install_requirements = [
-    "boto3>=1.3.0,<1.5.0",
-    "click==6.6",
-    "PyYaml==3.12",
-    "Jinja2==2.8",
-    "packaging==16.8",
-    "colorama==0.3.7",
-    "six==1.11.0"
+    "sceptre>=1.3.0"
 ]
 
 test_requirements = [
@@ -34,36 +28,30 @@ setup_requirements = [
 ]
 
 setup(
-    name="sceptre",
-    version="1.3.1",
-    description="Cloud Provisioning Tool",
+    name="sceptre_migration_tool",
+    version="0.0.1",
+    description="Migratioln Tool for Sceptre Cloud Provisioning Tool",
     long_description=readme + "\n\n" + history,
-    author="Cloudreach",
-    author_email="sceptre@cloudreach.com",
+    author="Intuit",
+    author_email="oazmon@intuit.com",
     license='Apache2',
-    url="https://github.com/cloudreach/sceptre",
+    url="https://github.com/cloudreach/sceptre_migration_tool",
     packages=[
-        "sceptre",
-        "sceptre/resolvers",
-        "sceptre/hooks"
+        "sceptre_migration_tool"
     ],
     package_dir={
-        "sceptre": "sceptre"
+        "sceptre_migration_tool": "sceptre_migration_tool"
     },
-    py_modules=["sceptre"],
+    py_modules=["sceptre_migration_tool"],
     entry_points="""
         [console_scripts]
-        sceptre=sceptre.cli:cli
+        sceptre_migration_tool=sceptre_migration_tool.cli:cli
     """,
     data_files=[
-        ("sceptre/stack_policies", [
-            "sceptre/stack_policies/lock.json",
-            "sceptre/stack_policies/unlock.json"
-        ])
     ],
     include_package_data=True,
     zip_safe=False,
-    keywords="sceptre",
+    keywords="sceptre_migration_tool, migration",
     classifiers=[
         "Development Status :: 5 - Production/Stable",
         "Intended Audience :: Developers",

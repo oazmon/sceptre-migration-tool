@@ -1,6 +1,6 @@
-=======
-Sceptre
-=======
+======================
+Sceptre Migration Tool
+======================
 
 .. image:: https://circleci.com/gh/cloudreach/sceptre.png?style=shield
 

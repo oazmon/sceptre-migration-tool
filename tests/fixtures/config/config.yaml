@@ -1,4 +1,0 @@
-iam_role: account_iam_role
-project_code: account_project_code
-region: account_region
-require_version: ">=0a"

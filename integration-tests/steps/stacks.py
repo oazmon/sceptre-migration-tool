@@ -67,66 +67,12 @@ def step_impl(context, stack_name):
     os.remove(filepath) if os.path.isfile(filepath) else None
 
 
-@when('the user creates stack "{stack_name}"')
-def step_impl(context, stack_name):
-    environment_name, basename = os.path.split(stack_name)
-    env = Environment(context.sceptre_dir, environment_name)
-    try:
-        env.stacks[basename].create()
-    except ClientError as e:
-        if e.response['Error']['Code'] == 'AlreadyExistsException' \
-          and e.response['Error']['Message'].endswith("already exists"):
-            return
-        else:
-            raise e
-
-
-@when('the user updates stack "{stack_name}"')
-def step_impl(context, stack_name):
-    environment_name, basename = os.path.split(stack_name)
-    env = Environment(context.sceptre_dir, environment_name)
-    try:
-        env.stacks[basename].update()
-    except ClientError as e:
-        message = e.response['Error']['Message']
-        if e.response['Error']['Code'] == 'ValidationError' \
-            and (message.endswith("does not exist")
-                 or message.endswith("No updates are to be performed.")):
-            return
-        else:
-            raise e
-
-
-@when('the user deletes stack "{stack_name}"')
-def step_impl(context, stack_name):
-    environment_name, basename = os.path.split(stack_name)
-    env = Environment(context.sceptre_dir, environment_name)
-    try:
-        env.stacks[basename].delete()
-    except ClientError as e:
-        if e.response['Error']['Code'] == 'ValidationError' \
-          and e.response['Error']['Message'].endswith("does not exist"):
-            return
-        else:
-            raise e
-
-
-@when('the user launches stack "{stack_name}"')
-def step_impl(context, stack_name):
-    environment_name, basename = os.path.split(stack_name)
-    env = Environment(context.sceptre_dir, environment_name)
-    try:
-        env.stacks[basename].launch()
-    except Exception as e:
-        context.error = e
-
-
-@when('the user describes the resources of stack "{stack_name}"')
-def step_impl(context, stack_name):
-    environment_name, basename = os.path.split(stack_name)
-    env = Environment(context.sceptre_dir, environment_name)
-
-    context.output = env.stacks[basename].describe_resources()
+@when('the user imports AWS stack "{aws_stack_name}" into Sceptre stack "{stack_name}" and template "{template_name}"')
+def step_impl(context, aws_stack_name, stack_name, template_name):
+    full_aws_stack_name = get_cloudformation_stack_name(context, aws_stack_name)
+    env = Environment(context.sceptre_dir, os.path.dirname(stack_name))
+    stack_base_name = os.path.basename(stack_name)
+    context.response = env.import_stack(full_aws_stack_name, stack_base_name, template_name)
 
 
 @then('stack "{stack_name}" exists in "{desired_status}" state')
@@ -141,23 +87,6 @@ def step_impl(context, stack_name):
     full_name = get_cloudformation_stack_name(context, stack_name)
     status = get_stack_status(context, full_name)
     assert (status is None)
-
-
-@then('the resources of stack "{stack_name}" are described')
-def step_impl(context, stack_name):
-    full_name = get_cloudformation_stack_name(context, stack_name)
-    response = retry_boto_call(
-        context.client.describe_stack_resources,
-        StackName=full_name
-    )
-
-    properties = {"LogicalResourceId", "PhysicalResourceId"}
-    formatted_response = [
-            {k: v for k, v in item.items() if k in properties}
-            for item in response["StackResources"]
-    ]
-
-    assert formatted_response == context.output
 
 
 @then('stack "{stack_name}" file exists in config')
