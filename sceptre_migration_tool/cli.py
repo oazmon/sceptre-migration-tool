@@ -102,6 +102,7 @@ def import_env(ctx, environment):
         )
     )
 
+
 def setup_logging(debug):
     """
     Sets up logging.
