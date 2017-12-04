@@ -10,12 +10,17 @@ from sceptre.exceptions import UnsupportedTemplateFileTypeError
 
 from sceptre_migration_tool import template
 from sceptre_migration_tool.exceptions import ImportFailureError
+from sceptre_migration_tool.migration_environment import MigrationEnvironment
 
 
 class TestTemplate(object):
 
     def setup_method(self, test_method):
-        self.connection_manager = Mock(spec=ConnectionManager)
+        connection_manager = Mock(spec=ConnectionManager)
+        environment_config = Mock()
+        environment_config.sceptre_dir = 'fake-spectre-dir'
+        self.reverse_resolution_service = MigrationEnvironment(
+            connection_manager, environment_config)
 
     @patch("sceptre_migration_tool.template._write_template")
     @patch("sceptre_migration_tool.template._normalize_template_for_write")
@@ -28,16 +33,18 @@ class TestTemplate(object):
         }
         fake_template_body_string = \
             json.dumps(fake_template_body['TemplateBody'])
-        self.connection_manager.call.return_value = fake_template_body
+        mock_connection_manager =\
+            self.reverse_resolution_service.connection_manager
+        mock_connection_manager.call.return_value = fake_template_body
         mock_normalize.return_value = fake_template_body_string
 
         template.import_template(
-            self.connection_manager,
+            self.reverse_resolution_service,
             'fake-aws-stack-name',
             'templates/fake-template-path.json'
         )
 
-        self.connection_manager.call.assert_called_once_with(
+        mock_connection_manager.call.assert_called_once_with(
             service='cloudformation',
             command='get_template',
             kwargs={
@@ -52,7 +59,7 @@ class TestTemplate(object):
         )
 
         mock_write.assert_called_once_with(
-            'templates/fake-template-path.json',
+            'fake-spectre-dir/templates/fake-template-path.json',
             fake_template_body_string
         )
 

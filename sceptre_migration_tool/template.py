@@ -17,7 +17,7 @@ from sceptre.exceptions import UnsupportedTemplateFileTypeError
 from .exceptions import ImportFailureError
 
 
-def import_template(connection_manager, aws_stack_name, path):
+def import_template(reverse_resolution_service, aws_stack_name, template_path):
     """
     Saves a template imported from AWS CloudFormation.
 
@@ -27,13 +27,18 @@ def import_template(connection_manager, aws_stack_name, path):
     :type region: str or dict
     :raises: UnsupportedTemplateFileTypeError
     """
-    logging.getLogger(__name__).debug(
-        "%s - Preparing to Import CloudFormation to %s",
-        os.path.basename(path).split(".")[0],
-        path
+    abs_template_path = os.path.join(
+        reverse_resolution_service.environment_config.sceptre_dir,
+        template_path
     )
 
-    response = connection_manager.call(
+    logging.getLogger(__name__).debug(
+        "%s - Preparing to Import CloudFormation to %s",
+        os.path.basename(template_path).split(".")[0],
+        abs_template_path
+    )
+
+    response = reverse_resolution_service.connection_manager.call(
         service='cloudformation',
         command='get_template',
         kwargs={
@@ -41,14 +46,18 @@ def import_template(connection_manager, aws_stack_name, path):
             'TemplateStage': 'Original'
         }
     )
+
     _write_template(
-        path,
+        abs_template_path,
         _normalize_template_for_write(
             response['TemplateBody'],
-            os.path.splitext(path)[1]
+            os.path.splitext(template_path)[1]
         )
     )
-    return Template(path, [])
+
+    template = Template(abs_template_path, [])
+    template.relative_template_path = template_path
+    return template
 
 
 # If body is a string it is a YAML string;

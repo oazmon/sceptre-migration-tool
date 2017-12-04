@@ -3,10 +3,11 @@
 from mock import patch, sentinel, Mock, PropertyMock
 
 from sceptre.environment import Environment
+
 from sceptre_migration_tool import migrator
 
 
-class TestEnvironment(object):
+class TestMigrator(object):
 
     @patch("sceptre.environment.Environment._load_stacks")
     @patch(
@@ -31,56 +32,37 @@ class TestEnvironment(object):
         self.environment._is_leaf = True
 
     @patch("sceptre_migration_tool.stack.import_stack")
-    @patch("sceptre_migration_tool.migrator.ConnectionManager")
-    @patch("sceptre.environment.Environment._get_config")
+    @patch("sceptre_migration_tool.migrator"
+           "._create_reverse_resolution_service")
     def test_import_stack(
-            self, mock_get_config, mock_ConnectionManager,
+            self, mock_reverse_resolution_service,
             mock_import_stack
     ):
-        mock_config = {
-            "region": sentinel.region,
-            "iam_role": sentinel.iam_role,
-            "profile": sentinel.profile
-        }
-        mock_get_config.return_value = mock_config
-        mock_ConnectionManager.return_value = sentinel.connection_manager
-
         migrator.import_stack(
             self.environment,
             aws_stack_name='fake-aws-stack',
             sceptre_stack_path='fake-sceptre-stack',
             template_path='fake-template-path'
         )
-        mock_ConnectionManager.assert_called_once_with(
-            region=sentinel.region,
-            iam_role=sentinel.iam_role,
-            profile=sentinel.profile
-        )
 
         mock_import_stack.assert_called_once_with(
-            environment_config=mock_config,
-            connection_manager=mock_ConnectionManager.return_value,
+            reverse_resolution_service=mock_reverse_resolution_service
+            .return_value,
             aws_stack_name='fake-aws-stack',
             template_path='fake-template-path',
             config_path='environment_path/fake-sceptre-stack'
         )
 
     @patch("sceptre_migration_tool.stack.import_stack")
-    @patch("sceptre_migration_tool.migrator.ConnectionManager")
-    @patch("sceptre.environment.Environment._get_config")
+    @patch("sceptre_migration_tool.migrator"
+           "._create_reverse_resolution_service")
     def test_import_env(
-            self, mock_get_config, mock_ConnectionManager,
+            self, mock_reverse_resolution_service,
             mock_import_stack
     ):
-        mock_config = {
-            "region": sentinel.region,
-            "iam_role": sentinel.iam_role,
-            "profile": sentinel.profile
-        }
-        mock_get_config.return_value = mock_config
-        mock_ConnectionManager.return_value = Mock()
-
-        mock_ConnectionManager.return_value.call.side_effect = [
+        mock_connection_manager =\
+            mock_reverse_resolution_service.return_value.connection_manager
+        mock_connection_manager.call.side_effect = [
             {
                 'Stacks': [
                     {
@@ -97,30 +79,46 @@ class TestEnvironment(object):
                 ]
             }
         ]
-        
 
         migrator.import_env(self.environment)
 
-        mock_ConnectionManager.assert_called_once_with(
-            region=sentinel.region,
-            iam_role=sentinel.iam_role,
-            profile=sentinel.profile
-        )
-        
         assert 2 == mock_import_stack.call_count
 
         mock_import_stack.assert_any_call(
-            environment_config=mock_config,
-            connection_manager=mock_ConnectionManager.return_value,
+            reverse_resolution_service=mock_reverse_resolution_service
+            .return_value,
             aws_stack_name='fake-aws-stack1',
-            template_path='templates/aws-import/fake-aws-stack1.yaml',
-            config_path='environment_path/fake-aws-stack1'
+            config_path='environment_path/fake-aws-stack1',
+            template_path='templates/aws-import/fake-aws-stack1.yaml'
         )
 
         mock_import_stack.assert_any_call(
-            environment_config=mock_config,
-            connection_manager=mock_ConnectionManager.return_value,
+            reverse_resolution_service=mock_reverse_resolution_service
+            .return_value,
             aws_stack_name='fake-aws-stack2',
-            template_path='templates/aws-import/fake-aws-stack2.yaml',
-            config_path='environment_path/fake-aws-stack2'
+            config_path='environment_path/fake-aws-stack2',
+            template_path='templates/aws-import/fake-aws-stack2.yaml'
+        )
+
+
+class TestEnvironment__create_reverse_resolution_service(object):
+
+    @patch("sceptre_migration_tool.migrator.ConnectionManager")
+    def test_happy_case(self, mock_ConnectionManager):
+        mock_env = Mock()
+        mock_env._get_config.return_value = {
+            "region": 'fake-region',
+            "iam_role": 'fake-iam-role',
+            "profile": 'fake-profile'
+        }
+
+        result = migrator._create_reverse_resolution_service(mock_env)
+
+        assert result.connection_manager == mock_ConnectionManager.return_value
+        assert result.environment_config == mock_env._get_config()
+
+        mock_ConnectionManager.assert_called_once_with(
+            region='fake-region',
+            iam_role='fake-iam-role',
+            profile='fake-profile'
         )
