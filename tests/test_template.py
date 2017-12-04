@@ -15,10 +15,13 @@ from sceptre_migration_tool.migration_environment import MigrationEnvironment
 
 class TestTemplate(object):
 
+    class MockConfig(dict):
+        pass
+
     def setup_method(self, test_method):
         connection_manager = Mock(spec=ConnectionManager)
-        environment_config = Mock()
-        environment_config.sceptre_dir = 'fake-spectre-dir'
+        environment_config = self.MockConfig()
+        environment_config['sceptre_dir'] = 'fake-spectre-dir'
         self.reverse_resolution_service = MigrationEnvironment(
             connection_manager, environment_config)
 

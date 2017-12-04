@@ -28,7 +28,7 @@ def import_template(reverse_resolution_service, aws_stack_name, template_path):
     :raises: UnsupportedTemplateFileTypeError
     """
     abs_template_path = os.path.join(
-        reverse_resolution_service.environment_config.sceptre_dir,
+        reverse_resolution_service.environment_config['sceptre_dir'],
         template_path
     )
 

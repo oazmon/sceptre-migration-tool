@@ -17,6 +17,9 @@ from sceptre_migration_tool.migration_environment import MigrationEnvironment
 
 class TestConfig(object):
 
+    class MockConfig(dict):
+        pass
+
     @contextmanager
     def _create_temp_dir(self):
         temp_directory = mkdtemp()
@@ -25,8 +28,8 @@ class TestConfig(object):
 
     def setup_method(self, test_method):
         connection_manager = Mock(spec=ConnectionManager)
-        environment_config = Mock()
-        environment_config.sceptre_dir = 'fake-spectre-dir'
+        environment_config = self.MockConfig()
+        environment_config['sceptre_dir'] = 'fake-spectre-dir'
         self.reverse_resolution_service = MigrationEnvironment(
             connection_manager, environment_config)
         self.reverse_resolution_service._reverse_resolver_list = []
