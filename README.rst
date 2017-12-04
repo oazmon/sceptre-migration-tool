@@ -7,7 +7,7 @@ Sceptre Migration Tool
 About
 -----
 
-Sceptre Migration Tool is a tool to assist importing from AWS `CloudFormation <https://aws.amazon.com/cloudformation/>` into a Sceptre environment_. It automates away some of the more mundane, repetitive and error-prone migration tasks.
+Sceptre Migration Tool is a tool to assist importing from AWS `CloudFormation <https://aws.amazon.com/cloudformation/>`_ into a Sceptre environment. It automates away some of the more mundane, repetitive and error-prone migration tasks.
 
 Features:
 
