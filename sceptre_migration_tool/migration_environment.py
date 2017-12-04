@@ -2,6 +2,8 @@
 
 import logging
 import os
+import re
+
 from sceptre.helpers import get_subclasses
 
 from sceptre_migration_tool.reverse_resolver import ReverseResolver
@@ -12,6 +14,15 @@ class MigrationEnvironment(object):
         self.logger = logging.getLogger(__name__)
         self.connection_manager = connection_manager
         self.environment_config = environment_config
+        self._reversed_env_config = {
+            v: "{{ " + k + " }}" for k, v in self.environment_config.items()
+        }
+        self._config_re_pattern = '|'.join(
+            [
+                re.escape(config_value)
+                for config_value in self.environment_config.values()
+            ]
+        )
         self._reverse_resolver_list = None
 
     @property
@@ -26,7 +37,7 @@ class MigrationEnvironment(object):
             )
             self._add_reverse_resolvers(
                 os.path.join(
-                    self.environment_config.sceptre_dir,
+                    self.environment_config['sceptre_dir'],
                     "reverse_resolvers"
                 )
             )
@@ -49,5 +60,15 @@ class MigrationEnvironment(object):
         for reverse_resolver in self.reverse_resolver_list:
             suggestion = reverse_resolver.suggest(value)
             if suggestion:
-                return suggestion
+                value = suggestion
+                break
+        return self._reverse_env_config(value)
+
+    def _reverse_env_config(self, value):
+        if self._config_re_pattern:
+            return re.sub(
+                self._config_re_pattern,
+                lambda matchobj: self._reversed_env_config[matchobj.group(0)],
+                value
+            )
         return value

@@ -10,17 +10,23 @@ from sceptre_migration_tool.migrator import MigrationEnvironment
 
 class TestMigrationEnvironment(object):
 
+    class MockConfig(dict):
+        pass
+
     def setup_method(self):
+        self.mock_config = self.MockConfig()
         self.migration_environment = MigrationEnvironment(
             connection_manager=sentinel.connection_manager,
-            environment_config=sentinel.environment_config
+            environment_config=self.mock_config
         )
 
     def test_config_correctly_initialised(self):
         assert self.migration_environment.connection_manager == \
             sentinel.connection_manager
         assert self.migration_environment.environment_config == \
-            sentinel.environment_config
+            self.mock_config
+        assert self.migration_environment._reversed_env_config == {}
+        assert self.migration_environment._config_re_pattern == ''
         assert self.migration_environment._reverse_resolver_list is None
 
     @patch("sceptre_migration_tool.migration_environment.get_subclasses")
@@ -44,7 +50,7 @@ class TestMigrationEnvironment(object):
         )
         mock_class.assert_called_once_with(
             sentinel.connection_manager,
-            sentinel.environment_config
+            self.mock_config
         )
 
     def test_reverse_resolver__no_resolvers(self):
@@ -67,14 +73,16 @@ class TestMigrationEnvironment(object):
 
     def test_reverse_resolver_list__pre_defined(self):
         self.migration_environment._reverse_resolver_list = 'fake-list'
-        assert 'fake-list' == self.migration_environment.reverse_resolver_list
+        result = self.migration_environment.reverse_resolver_list
+        assert 'fake-list' == result
 
     @patch("sceptre_migration_tool.migration_environment.MigrationEnvironment"
            "._add_reverse_resolvers")
     def test_reverse_resolver_list__search(self, mock__add_reverse_resolvers):
-        self.migration_environment.environment_config\
-            .sceptre_dir = 'fake-sceptre-dir'
-        assert [] == self.migration_environment.reverse_resolver_list
+        self.migration_environment.environment_config['sceptre_dir'] = \
+            'fake-sceptre-dir'
+        result = self.migration_environment.reverse_resolver_list
+        assert [] == result
         assert 2 == mock__add_reverse_resolvers.call_count
         mock__add_reverse_resolvers.assert_any_call(
             os.path.join(
@@ -86,3 +94,39 @@ class TestMigrationEnvironment(object):
         mock__add_reverse_resolvers.assert_any_call(
             'fake-sceptre-dir/reverse_resolvers'
         )
+
+
+class TestMigrationEnvironment__reverse_env_config(object):
+
+    class MockConfig(dict):
+        pass
+
+    def setup_method(self):
+        self.mock_config = self.MockConfig()
+        self.mock_config['preprod_aws_profile'] = 'my-special-profile'
+        self.mock_config['preprod_region'] = 'us-west-2'
+        self.mock_config['preprod_vpc_id'] = 'vpc-abc123'
+        self.migration_environment = MigrationEnvironment(
+            connection_manager=sentinel.connection_manager,
+            environment_config=self.mock_config
+        )
+
+    def test_config_correctly_initialised(self):
+        assert self.migration_environment.connection_manager == \
+            sentinel.connection_manager
+        assert self.migration_environment.environment_config == \
+            self.mock_config
+        assert self.migration_environment._reversed_env_config == {
+            'my-special-profile': '{{ preprod_aws_profile }}',
+            'us-west-2': '{{ preprod_region }}',
+            'vpc-abc123': '{{ preprod_vpc_id }}'
+        }
+        assert self.migration_environment._config_re_pattern == \
+            'us\\-west\\-2|vpc\\-abc123|my\\-special\\-profile'
+        assert self.migration_environment._reverse_resolver_list is None
+
+    def test__multi_subst(self):
+        result = self.migration_environment._reverse_env_config(
+            'my-bucket-vpc-abc123-us-west-2'
+        )
+        assert 'my-bucket-{{ preprod_vpc_id }}-{{ preprod_region }}' == result
