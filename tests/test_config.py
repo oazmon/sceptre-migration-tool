@@ -7,9 +7,12 @@ import json
 from mock import patch, Mock, call
 import pytest
 
+from sceptre.connection_manager import ConnectionManager
+from sceptre.template import Template
+
 from sceptre_migration_tool import config
 from sceptre_migration_tool.exceptions import ImportFailureError
-from sceptre.template import Template
+from sceptre_migration_tool.migration_environment import MigrationEnvironment
 
 
 class TestConfig(object):
@@ -20,18 +23,25 @@ class TestConfig(object):
         yield temp_directory
         shutil.rmtree(temp_directory)
 
+    def setup_method(self, test_method):
+        connection_manager = Mock(spec=ConnectionManager)
+        environment_config = Mock()
+        environment_config.sceptre_dir = 'fake-spectre-dir'
+        self.reverse_resolution_service = MigrationEnvironment(
+            connection_manager, environment_config)
+        self.reverse_resolution_service._reverse_resolver_list = []
+
     @patch("sceptre_migration_tool.config.os.path.isfile")
     def test_import_config__exists(
         self, mock_isfile
     ):
-        mock_connection_manager = Mock()
         mock_isfile.return_value = True
         with pytest.raises(ImportFailureError):
             config.import_config(
-                template=Template('fake-path', []),
-                connection_manager=mock_connection_manager,
+                reverse_resolution_service=self.reverse_resolution_service,
                 aws_stack_name="fake-aws-stack-name",
-                config_path="environment-path/config"
+                config_path="environment-path/fake-stack",
+                template=Template('fake-path', [])
             )
 
     @patch("sceptre_migration_tool.config.print")
@@ -40,8 +50,8 @@ class TestConfig(object):
     def test_import_config__empty_stack(
         self, mock_isfile, mock_open, mock_print
     ):
-        mock_connection_manager = Mock()
-        mock_connection_manager.call.return_value = {'Stacks': [
+        self.reverse_resolution_service.connection_manager\
+            .call.return_value = {'Stacks': [
                 {
                 }
             ]}
@@ -50,14 +60,15 @@ class TestConfig(object):
         fake_template = Template('fake-path', [])
         fake_template.relative_template_path = 'fake-relative-path'
         config.import_config(
-            template=fake_template,
-            connection_manager=mock_connection_manager,
+            reverse_resolution_service=self.reverse_resolution_service,
             aws_stack_name="fake-aws-stack-name",
-            config_path="environment-path/fake-stack"
+            config_path="environment-path/fake-stack",
+            template=fake_template
+
         )
 
         mock_open.assert_called_with(
-            "environment-path/fake-stack.yaml",
+            "fake-spectre-dir/config/environment-path/fake-stack.yaml",
             'w'
         )
 
@@ -96,8 +107,8 @@ class TestConfig(object):
                 }
             }
         })
-        mock_connection_manager = Mock()
-        mock_connection_manager.call.return_value = {'Stacks': [
+        self.reverse_resolution_service.connection_manager\
+            .call.return_value = {'Stacks': [
                 {
                     'EnableTerminationProtection': True,
                     'RoleARN': 'fake-role-arn',
@@ -126,10 +137,10 @@ class TestConfig(object):
 
         mock_isfile.return_value = False
         config.import_config(
-            template=mock_template,
-            connection_manager=mock_connection_manager,
+            reverse_resolution_service=self.reverse_resolution_service,
             aws_stack_name="fake-aws-stack-name",
-            config_path="environment-path/fake-stack"
+            config_path="environment-path/fake-stack",
+            template=mock_template
         )
 
         expected_calls = [
