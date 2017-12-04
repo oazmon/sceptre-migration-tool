@@ -51,7 +51,7 @@ setup(
     ],
     include_package_data=True,
     zip_safe=False,
-    keywords="sceptre_migration_tool, migration",
+    keywords="sceptre_migration_tool, sceptre, migration",
     classifiers=[
         "Development Status :: 5 - Production/Stable",
         "Intended Audience :: Developers",
