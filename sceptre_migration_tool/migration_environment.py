@@ -44,6 +44,9 @@ class MigrationEnvironment(object):
             self._reverse_resolver_list.sort(key=lambda r: r.precendence())
         return self._reverse_resolver_list
 
+    def get_internal_stack(self, stack):
+        return None  # TODO
+
     def _add_reverse_resolvers(self, directory):
         classes = get_subclasses(
             directory=directory, class_type=ReverseResolver
@@ -51,8 +54,7 @@ class MigrationEnvironment(object):
         for node_class in classes.values():
             self._reverse_resolver_list.append(
                 node_class(
-                    self.connection_manager,
-                    self.environment_config
+                    self
                 )
             )
 

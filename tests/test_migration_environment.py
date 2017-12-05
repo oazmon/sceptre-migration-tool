@@ -49,8 +49,7 @@ class TestMigrationEnvironment(object):
             class_type=ReverseResolver
         )
         mock_class.assert_called_once_with(
-            sentinel.connection_manager,
-            self.mock_config
+            self.migration_environment
         )
 
     def test_reverse_resolver__no_resolvers(self):
@@ -121,8 +120,10 @@ class TestMigrationEnvironment__reverse_env_config(object):
             'us-west-2': '{{ preprod_region }}',
             'vpc-abc123': '{{ preprod_vpc_id }}'
         }
-        assert self.migration_environment._config_re_pattern == \
-            'us\\-west\\-2|vpc\\-abc123|my\\-special\\-profile'
+        assert self.migration_environment._config_re_pattern\
+            .split('|').sort() == \
+            'us\\-west\\-2|vpc\\-abc123|my\\-special\\-profile'\
+            .split('|').sort()
         assert self.migration_environment._reverse_resolver_list is None
 
     def test__multi_subst(self):

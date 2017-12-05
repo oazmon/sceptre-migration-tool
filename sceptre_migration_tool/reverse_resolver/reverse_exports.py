@@ -32,7 +32,7 @@ class ReverseExports(ReverseResolver):
         exports = {}
         list_exports_kwargs = {}
         while True:
-            response = self.connection_manager.call(
+            response = self.migration_environment.connection_manager.call(
                 service="cloudformation",
                 command="list_exports",
                 kwargs=list_exports_kwargs

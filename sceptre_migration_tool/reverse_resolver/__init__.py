@@ -21,12 +21,10 @@ class ReverseResolver():
 
     def __init__(
         self,
-        connection_manager=None,
-        environment_config=None
+        migration_environment=None
     ):
         self.logger = logging.getLogger(__name__)
-        self.environment_config = environment_config
-        self.connection_manager = connection_manager
+        self.migration_environment = migration_environment
 
     @abc.abstractmethod
     def precendence(self):
