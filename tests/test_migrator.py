@@ -109,7 +109,8 @@ class TestEnvironment__create_reverse_resolution_service(object):
         mock_env._get_config.return_value = {
             "region": 'fake-region',
             "iam_role": 'fake-iam-role',
-            "profile": 'fake-profile'
+            "profile": 'fake-profile',
+            "user_variables": {}
         }
 
         result = migrator._create_reverse_resolution_service(mock_env)

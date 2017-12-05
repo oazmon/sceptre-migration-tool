@@ -4,7 +4,7 @@ from mock import sentinel
 # import pytest
 
 from sceptre_migration_tool.migration_environment import MigrationEnvironment
-from sceptre_migration_tool.reverse_resolver import ReverseResolver
+from sceptre_migration_tool.reverse_resolvers import ReverseResolver
 
 
 class MockConfig(dict):
@@ -33,10 +33,13 @@ class TestReverseResolver(object):
         pass
 
     def setup_method(self, test_method):
+        self.mock_environment_config = self.MockConfig()
+        self.mock_environment_config.sceptre_dir = 'fake-spectre-dir'
+        self.mock_environment_config['user_variables'] = {}
         self.reverse_exporter = MockReverseResolver(
             MigrationEnvironment(
                 connection_manager=sentinel.connection_manager,
-                environment_config=self.MockConfig()
+                environment_config=self.mock_environment_config
             )
         )
 
@@ -44,6 +47,6 @@ class TestReverseResolver(object):
         assert self.reverse_exporter.migration_environment\
             .connection_manager == sentinel.connection_manager
         assert self.reverse_exporter.migration_environment\
-            .environment_config == {}
+            .environment_config == self.mock_environment_config
         assert self.reverse_exporter.precendence() == 99
         assert self.reverse_exporter.suggest("value") is None

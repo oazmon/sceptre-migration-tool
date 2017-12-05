@@ -18,6 +18,7 @@ class TestStack(object):
         connection_manager = Mock(spec=ConnectionManager)
         environment_config = self.MockConfig()
         environment_config['sceptre_dir'] = 'fake-spectre-dir'
+        environment_config['user_variables'] = {}
         self.reverse_resolution_service = MigrationEnvironment(
             connection_manager, environment_config)
 

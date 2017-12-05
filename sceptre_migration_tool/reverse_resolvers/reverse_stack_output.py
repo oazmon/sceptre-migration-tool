@@ -4,7 +4,7 @@ Created on Nov 29, 2017
 @author: Omer Azmon
 '''
 
-from sceptre_migration_tool.reverse_resolver import ReverseResolver
+from sceptre_migration_tool.reverse_resolvers import ReverseResolver
 
 
 class ReverseStackOutput(ReverseResolver):
@@ -21,9 +21,22 @@ class ReverseStackOutput(ReverseResolver):
         if self._stack_output is None:
             self._get_stack_output()
         if value in self._stack_output:
-            return self._stack_output[value]
+            suggestion = self._stack_output[value]
+            self.logger.debug(
+                "Internal Stack Suggestion for '%s' is '%s'",
+                value,
+                suggestion
+            )
+            return suggestion
         if value in self._stack_output_external:
-            return self._stack_output_external[value]
+            suggestion = self._stack_output_external[value]
+            self.logger.debug(
+                "External Stack Suggestion for '%s' is '%s'",
+                value,
+                suggestion
+            )
+            return suggestion
+        self.logger.debug("Stack Suggestion for '%s' is 'NONE'", value)
         return None
 
     def _get_stack_output(self):
@@ -42,7 +55,7 @@ class ReverseStackOutput(ReverseResolver):
                 command="describe_stacks",
                 kwargs=list_stacks_kwargs
             )
-            for stack in response["StackSummaries"]:
+            for stack in response["Stacks"]:
                 self._build_reverse_lookup(stack)
             if 'NextToken' in response \
                     and response['NextToken'] is not None:
@@ -50,8 +63,8 @@ class ReverseStackOutput(ReverseResolver):
             else:
                 break
 
-        self.logger.debug("Outputs: {0}".format(self._stack_output))
-        self.logger.debug("Outputs external: {0}".format(self._stack_output))
+        self.logger.debug("Outputs: %s", self._stack_output)
+        self.logger.debug("Outputs external: %s", self._stack_output)
 
     def _build_reverse_lookup(self, stack):
         if 'Outputs' not in stack or not stack['Outputs']:

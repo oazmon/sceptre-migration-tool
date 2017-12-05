@@ -6,7 +6,7 @@ import re
 
 from sceptre.helpers import get_subclasses
 
-from sceptre_migration_tool.reverse_resolver import ReverseResolver
+from sceptre_migration_tool.reverse_resolvers import ReverseResolver
 
 
 class MigrationEnvironment(object):
@@ -15,12 +15,15 @@ class MigrationEnvironment(object):
         self.connection_manager = connection_manager
         self.environment_config = environment_config
         self._reversed_env_config = {
-            v: "{{ " + k + " }}" for k, v in self.environment_config.items()
+            str(v): "{{ " + str(k) + " }}"
+            for k, v
+            in self.environment_config['user_variables'].items()
         }
         self._config_re_pattern = '|'.join(
             [
-                re.escape(config_value)
-                for config_value in self.environment_config.values()
+                re.escape(str(config_value))
+                for config_value
+                in self.environment_config['user_variables'].values()
             ]
         )
         self._reverse_resolver_list = None
@@ -37,11 +40,15 @@ class MigrationEnvironment(object):
             )
             self._add_reverse_resolvers(
                 os.path.join(
-                    self.environment_config['sceptre_dir'],
+                    self.environment_config.sceptre_dir,
                     "reverse_resolvers"
                 )
             )
             self._reverse_resolver_list.sort(key=lambda r: r.precendence())
+            self.logger.debug(
+                "reverse_resolver_list = %s",
+                str(self._reverse_resolver_list)
+            )
         return self._reverse_resolver_list
 
     def get_internal_stack(self, stack):
@@ -51,6 +58,11 @@ class MigrationEnvironment(object):
         classes = get_subclasses(
             directory=directory, class_type=ReverseResolver
         )
+        self.logger.debug(
+            "_add_reverse_resolvers for directory %s are %s",
+            directory,
+            str(classes)
+        )
         for node_class in classes.values():
             self._reverse_resolver_list.append(
                 node_class(
@@ -59,18 +71,23 @@ class MigrationEnvironment(object):
             )
 
     def reverse_resolve(self, value):
+        resolution = value
         for reverse_resolver in self.reverse_resolver_list:
             suggestion = reverse_resolver.suggest(value)
             if suggestion:
-                value = suggestion
+                resolution = suggestion
                 break
-        return self._reverse_env_config(value)
+        resolution = self._reverse_env_config(resolution)
+        self.logger.debug("Resolution for '%s' is '%s'", value, resolution)
+        return resolution
 
     def _reverse_env_config(self, value):
+        def reverse(m):
+            return self._reversed_env_config[m.group(0)]
         if self._config_re_pattern:
             return re.sub(
                 self._config_re_pattern,
-                lambda matchobj: self._reversed_env_config[matchobj.group(0)],
+                reverse,
                 value
             )
         return value

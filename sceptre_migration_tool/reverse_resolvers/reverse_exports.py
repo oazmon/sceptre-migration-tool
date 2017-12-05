@@ -4,7 +4,7 @@ Created on Nov 29, 2017
 @author: Omer Azmon
 '''
 
-from sceptre_migration_tool.reverse_resolver import ReverseResolver
+from sceptre_migration_tool.reverse_resolvers import ReverseResolver
 
 
 class ReverseExports(ReverseResolver):
@@ -17,9 +17,16 @@ class ReverseExports(ReverseResolver):
         return 10
 
     def suggest(self, value):
+
         if self._exports is None:
             self._exports = self._get_exports()
-        return self._exports[value] if value in self._exports else None
+        suggestion = self._exports[value] if value in self._exports else None
+        self.logger.debug(
+            "Export Suggestion for '%s' is '%s'",
+            value,
+            suggestion
+        )
+        return suggestion
 
     def _get_exports(self):
         """
@@ -55,5 +62,5 @@ class ReverseExports(ReverseResolver):
             else:
                 break
 
-        self.logger.debug("Exports: {0}".format(exports))
+        self.logger.debug("Exports: %s", exports)
         return exports

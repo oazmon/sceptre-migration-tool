@@ -1,7 +1,7 @@
 
 from mock import Mock, patch
 
-from sceptre_migration_tool.reverse_resolver.reverse_stack_output\
+from sceptre_migration_tool.reverse_resolvers.reverse_stack_output\
     import ReverseStackOutput
 from sceptre_migration_tool.migration_environment import MigrationEnvironment
 
@@ -14,10 +14,12 @@ class TestReverseStackOutput(object):
 
     def setup_method(self, test_method):
         self.mock_connection_manager = Mock()
+        self.mock_environment_config = MockConfig()
+        self.mock_environment_config['user_variables'] = {}
         self.reverse_stack_output = ReverseStackOutput(
             MigrationEnvironment(
                 connection_manager=self.mock_connection_manager,
-                environment_config=MockConfig()
+                environment_config=self.mock_environment_config
             )
         )
 
@@ -25,7 +27,7 @@ class TestReverseStackOutput(object):
         assert self.reverse_stack_output.migration_environment\
             .connection_manager == self.mock_connection_manager
         assert self.reverse_stack_output.migration_environment\
-            .environment_config == {}
+            .environment_config == self.mock_environment_config
         assert self.reverse_stack_output.precendence() == 20
 
     def test__add_to_reverse_lookup__has_export(self):
@@ -70,7 +72,7 @@ class TestReverseStackOutput(object):
         )
         assert reverse_lookup == {'value1': 'fake-older-value'}
 
-    @patch("sceptre_migration_tool.reverse_resolver.reverse_stack_output."
+    @patch("sceptre_migration_tool.reverse_resolvers.reverse_stack_output."
            "ReverseStackOutput._add_to_reverse_lookup")
     def test__build_external_stack_lookup(
             self, mock_add_one
@@ -109,7 +111,7 @@ class TestReverseStackOutput(object):
             resolver_name="stack_output_external"
         )
 
-    @patch("sceptre_migration_tool.reverse_resolver.reverse_stack_output."
+    @patch("sceptre_migration_tool.reverse_resolvers.reverse_stack_output."
            "ReverseStackOutput._add_to_reverse_lookup")
     def test__build_internal_stack_lookup(
             self, mock_add_one
@@ -148,9 +150,9 @@ class TestReverseStackOutput(object):
             resolver_name="stack_output"
         )
 
-    @patch("sceptre_migration_tool.reverse_resolver.reverse_stack_output."
+    @patch("sceptre_migration_tool.reverse_resolvers.reverse_stack_output."
            "ReverseStackOutput._build_external_stack_lookup")
-    @patch("sceptre_migration_tool.reverse_resolver.reverse_stack_output."
+    @patch("sceptre_migration_tool.reverse_resolvers.reverse_stack_output."
            "ReverseStackOutput._build_internal_stack_lookup")
     def test__build_reverse_lookup__no_outputs(
             self, mock_build_internal, mock_build_external
@@ -159,9 +161,9 @@ class TestReverseStackOutput(object):
         mock_build_internal.assert_not_called()
         mock_build_external.assert_not_called()
 
-    @patch("sceptre_migration_tool.reverse_resolver.reverse_stack_output."
+    @patch("sceptre_migration_tool.reverse_resolvers.reverse_stack_output."
            "ReverseStackOutput._build_external_stack_lookup")
-    @patch("sceptre_migration_tool.reverse_resolver.reverse_stack_output."
+    @patch("sceptre_migration_tool.reverse_resolvers.reverse_stack_output."
            "ReverseStackOutput._build_internal_stack_lookup")
     def test__build_reverse_lookup__internal_stack(
             self, mock_build_internal, mock_build_external
@@ -190,9 +192,9 @@ class TestReverseStackOutput(object):
         )
         mock_build_external.assert_not_called()
 
-    @patch("sceptre_migration_tool.reverse_resolver.reverse_stack_output."
+    @patch("sceptre_migration_tool.reverse_resolvers.reverse_stack_output."
            "ReverseStackOutput._build_external_stack_lookup")
-    @patch("sceptre_migration_tool.reverse_resolver.reverse_stack_output."
+    @patch("sceptre_migration_tool.reverse_resolvers.reverse_stack_output."
            "ReverseStackOutput._build_internal_stack_lookup")
     def test__build_reverse_lookup__external_stack(
             self, mock_build_internal, mock_build_external
@@ -223,13 +225,13 @@ class TestReverseStackOutput(object):
 
     def test__get_stack_output__no_stacks(self):
         self.mock_connection_manager.call.return_value = {
-            'StackSummaries': []
+            'Stacks': []
         }
         self.reverse_stack_output._get_stack_output()
         assert {} == self.reverse_stack_output._stack_output
         assert {} == self.reverse_stack_output._stack_output_external
 
-    @patch("sceptre_migration_tool.reverse_resolver.reverse_stack_output."
+    @patch("sceptre_migration_tool.reverse_resolvers.reverse_stack_output."
            "ReverseStackOutput._build_reverse_lookup")
     def test__get_stack_output__good(self, mock_build_reverse_lookup):
         self.mock_stack1 = Mock()
@@ -237,14 +239,14 @@ class TestReverseStackOutput(object):
         self.mock_stack3 = Mock()
         self.mock_connection_manager.call.side_effect = [
             {
-                'StackSummaries': [
+                'Stacks': [
                     self.mock_stack1,
                     self.mock_stack2
                 ],
                 'NextToken': 'fake-next-token'
             },
             {
-                'StackSummaries': [
+                'Stacks': [
                     self.mock_stack3
                 ]
             }
@@ -255,7 +257,7 @@ class TestReverseStackOutput(object):
         mock_build_reverse_lookup.assert_any_call(self.mock_stack2)
         mock_build_reverse_lookup.assert_any_call(self.mock_stack3)
 
-    @patch("sceptre_migration_tool.reverse_resolver.reverse_stack_output."
+    @patch("sceptre_migration_tool.reverse_resolvers.reverse_stack_output."
            "ReverseStackOutput._get_stack_output")
     def test_suggest__not_found(self, mock_get_stack_output):
         def _get_stack_output_side_effect():
@@ -267,7 +269,7 @@ class TestReverseStackOutput(object):
 
         mock_get_stack_output.assert_called_once()
 
-    @patch("sceptre_migration_tool.reverse_resolver.reverse_stack_output."
+    @patch("sceptre_migration_tool.reverse_resolvers.reverse_stack_output."
            "ReverseStackOutput._get_stack_output")
     def test_suggest__is_internal(self, mock_get_stack_output):
         def _get_stack_output_side_effect():
@@ -282,7 +284,7 @@ class TestReverseStackOutput(object):
 
         mock_get_stack_output.assert_called_once()
 
-    @patch("sceptre_migration_tool.reverse_resolver.reverse_stack_output."
+    @patch("sceptre_migration_tool.reverse_resolvers.reverse_stack_output."
            "ReverseStackOutput._get_stack_output")
     def test_suggest__is_external(self, mock_get_stack_output):
         def _get_stack_output_side_effect():

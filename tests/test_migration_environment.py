@@ -4,7 +4,7 @@ import os
 
 from mock import sentinel, Mock, patch
 
-from sceptre_migration_tool.reverse_resolver import ReverseResolver
+from sceptre_migration_tool.reverse_resolvers import ReverseResolver
 from sceptre_migration_tool.migrator import MigrationEnvironment
 
 
@@ -15,6 +15,7 @@ class TestMigrationEnvironment(object):
 
     def setup_method(self):
         self.mock_config = self.MockConfig()
+        self.mock_config['user_variables'] = {}
         self.migration_environment = MigrationEnvironment(
             connection_manager=sentinel.connection_manager,
             environment_config=self.mock_config
@@ -78,7 +79,7 @@ class TestMigrationEnvironment(object):
     @patch("sceptre_migration_tool.migration_environment.MigrationEnvironment"
            "._add_reverse_resolvers")
     def test_reverse_resolver_list__search(self, mock__add_reverse_resolvers):
-        self.migration_environment.environment_config['sceptre_dir'] = \
+        self.migration_environment.environment_config.sceptre_dir = \
             'fake-sceptre-dir'
         result = self.migration_environment.reverse_resolver_list
         assert [] == result
@@ -102,9 +103,11 @@ class TestMigrationEnvironment__reverse_env_config(object):
 
     def setup_method(self):
         self.mock_config = self.MockConfig()
-        self.mock_config['preprod_aws_profile'] = 'my-special-profile'
-        self.mock_config['preprod_region'] = 'us-west-2'
-        self.mock_config['preprod_vpc_id'] = 'vpc-abc123'
+        self.mock_config['user_variables'] = {
+            'preprod_aws_profile': 'my-special-profile',
+            'preprod_region': 'us-west-2',
+            'preprod_vpc_id': 'vpc-abc123'
+        }
         self.migration_environment = MigrationEnvironment(
             connection_manager=sentinel.connection_manager,
             environment_config=self.mock_config

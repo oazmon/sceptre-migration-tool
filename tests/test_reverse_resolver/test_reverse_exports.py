@@ -1,7 +1,7 @@
 
 from mock import Mock, patch
 
-from sceptre_migration_tool.reverse_resolver.reverse_exports\
+from sceptre_migration_tool.reverse_resolvers.reverse_exports\
     import ReverseExports
 from sceptre_migration_tool.migration_environment import MigrationEnvironment
 
@@ -14,10 +14,12 @@ class TestReverseExports(object):
 
     def setup_method(self, test_method):
         self.mock_connection_manager = Mock()
+        self.mock_environment_config = MockConfig()
+        self.mock_environment_config['user_variables'] = {}
         self.reverse_exporter = ReverseExports(
             MigrationEnvironment(
                 connection_manager=self.mock_connection_manager,
-                environment_config=MockConfig()
+                environment_config=self.mock_environment_config
             )
         )
 
@@ -25,17 +27,17 @@ class TestReverseExports(object):
         assert self.reverse_exporter.migration_environment\
             .connection_manager == self.mock_connection_manager
         assert self.reverse_exporter.migration_environment\
-            .environment_config == {}
+            .environment_config == self.mock_environment_config
         assert self.reverse_exporter.precendence() == 10
 
-    @patch("sceptre_migration_tool.reverse_resolver.reverse_exports."
+    @patch("sceptre_migration_tool.reverse_resolvers.reverse_exports."
            "ReverseExports._get_exports")
     def test_suggest__no_suggestions(self, mock_get_exports):
         mock_get_exports.return_value = {}
         assert self.reverse_exporter.suggest("value") is None
         mock_get_exports.assert_called_once()
 
-    @patch("sceptre_migration_tool.reverse_resolver.reverse_exports."
+    @patch("sceptre_migration_tool.reverse_resolvers.reverse_exports."
            "ReverseExports._get_exports")
     def test_suggest__has_suggestions(self, mock_get_exports):
         mock_get_exports.return_value = {'value': '!stack_export key'}

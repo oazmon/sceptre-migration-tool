@@ -94,13 +94,12 @@ def import_env(ctx, environment):
     """
     Import a Sceptre environment from a set of AWS CloudFormation stacks.
     """
-    migrator.import_env(
-        Environment(
-            sceptre_dir=ctx.obj["sceptre_dir"],
-            environment_path=environment,
-            options=ctx.obj["options"]
-        )
+    env = Environment(
+        sceptre_dir=ctx.obj["sceptre_dir"],
+        environment_path=environment,
+        options=ctx.obj["options"]
     )
+    migrator.import_env(env)
 
 
 def setup_logging(debug):
