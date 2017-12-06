@@ -1,6 +1,13 @@
 sceptre\_migration\_tool package
 ================================
 
+Subpackages
+-----------
+
+.. toctree::
+
+    sceptre_migration_tool.reverse_resolvers
+
 Submodules
 ----------
 
@@ -24,6 +31,14 @@ sceptre\_migration\_tool\.exceptions module
 -------------------------------------------
 
 .. automodule:: sceptre_migration_tool.exceptions
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+sceptre\_migration\_tool\.migration\_environment module
+-------------------------------------------------------
+
+.. automodule:: sceptre_migration_tool.migration_environment
     :members:
     :undoc-members:
     :show-inheritance:

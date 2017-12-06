@@ -40,10 +40,11 @@ class TestCli(object):
             self, mock_env, mock_getcwd, mock_import_stack
     ):
         mock_getcwd.return_value = sentinel.cwd
-
-        self.runner.invoke(cli.cli,
-                           ["import-stack", "dev", "vpc", "fake-aws-stack"])
-
+        result = self.runner.invoke(
+            cli.cli,
+            ["import-stack", "dev", "vpc", "fake-aws-stack"]
+        )
+        assert result.exit_code == 0
         mock_env.assert_called_with(
             sceptre_dir=sentinel.cwd,
             environment_path=u'dev',
@@ -69,7 +70,7 @@ class TestCli(object):
     ):
         mock_getcwd.return_value = sentinel.cwd
         fake_template_path = "user-templates/fake-aws-stack.yaml"
-        self.runner.invoke(cli.cli, [
+        result = self.runner.invoke(cli.cli, [
                 "import-stack",
                 "--template", fake_template_path,
                 "dev",
@@ -77,13 +78,12 @@ class TestCli(object):
                 "fake-aws-stack"
             ]
         )
-
+        assert 0 == result.exit_code
         mock_env.assert_called_with(
             sceptre_dir=sentinel.cwd,
             environment_path=u'dev',
             options={}
         )
-
         mock_import_stack.assert_called_with(
             mock_env.return_value,
             "fake-aws-stack",
@@ -98,7 +98,8 @@ class TestCli(object):
             self, mock_env, mock_getcwd, mock_import_env
     ):
         mock_getcwd.return_value = sentinel.cwd
-        self.runner.invoke(cli.cli, ["import-env", "dev"])
+        result = self.runner.invoke(cli.cli, ["import-env", "dev"])
+        assert 0 == result.exit_code
         mock_env.assert_called_with(
             sceptre_dir=sentinel.cwd,
             environment_path=u'dev',
@@ -106,4 +107,36 @@ class TestCli(object):
         )
         mock_import_env.assert_called_with(
             mock_env.return_value
+        )
+
+    @patch("sceptre_migration_tool.cli.migrator.import_list")
+    @patch("sceptre_migration_tool.cli.os.getcwd")
+    def test_import_list(
+            self, mock_getcwd, mock_import_list
+    ):
+        mock_getcwd.return_value = sentinel.cwd
+        result = self.runner.invoke(cli.cli, [
+            "import-list", "--list-path", "fake-list-path"
+        ])
+        assert 0 == result.exit_code
+        mock_import_list.assert_called_once_with(
+            sentinel.cwd, {}, 'fake-list-path'
+        )
+
+    @patch("sceptre_migration_tool.cli.migrator.generate_import_list")
+    @patch("sceptre_migration_tool.cli.open")
+    @patch("sceptre_migration_tool.cli.Environment")
+    @patch("sceptre_migration_tool.cli.os.getcwd")
+    def test_generate_import_list(
+            self, mock_getcwd, mock_import_env,
+            mock_open, mock_generate_import_list
+    ):
+        mock_getcwd.return_value = sentinel.cwd
+        result = self.runner.invoke(cli.cli, [
+            "generate-import-list", "dev", "--list-path", "fake-list-path"
+        ])
+        assert 0 == result.exit_code
+        mock_generate_import_list.assert_called_once_with(
+            mock_import_env.return_value,
+            mock_open.return_value.__enter__.return_value
         )

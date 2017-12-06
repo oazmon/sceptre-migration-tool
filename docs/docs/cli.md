@@ -25,7 +25,9 @@ Running sceptre migration tool without a subcommand will display help, showing a
 The available commands are:
 
 ```
+$ sceptre_migration_tool generate-import-list
 $ sceptre_migration_tool import-env
+$ sceptre_migration_tool import-list
 $ sceptre_migration_tool import-stack
 ```
 

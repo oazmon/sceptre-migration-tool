@@ -86,6 +86,46 @@ def import_stack(ctx, environment, stack, aws_stack_name, template_path):
     )
 
 
+@cli.command(name="import-list")
+@click.option("--list-path", "list_path", required=True,
+              help="Specify the file containing the list of stacks to import. "
+              "Each line in the list represents one stack and has 4 space "
+              "delimited values: "
+              "environment sceptre-stack-name aws-stack-name {template-path} "
+              "The last is optional and if not specified by template will "
+              "be assumed as templates/aws-import/{aws-stack-name}.yaml")
+@click.pass_context
+@sceptre_cli.catch_exceptions
+def import_list(ctx, list_path):
+    """
+    Import a list of Sceptre stack from AWS Cloudformation.
+    """
+    migrator.import_list(ctx.obj["sceptre_dir"], ctx.obj["options"], list_path)
+
+
+@cli.command(name="generate-import-list")
+@click.option("--list-path", "list_path",
+              help="Specify the list output file.")
+@click.pass_context
+@sceptre_cli.environment_options
+@sceptre_cli.catch_exceptions
+def generate_import_list(ctx, environment, list_path):
+    """
+    Generate import a list of Sceptre stack from AWS Cloudformation.
+    """
+    env = Environment(
+        sceptre_dir=ctx.obj["sceptre_dir"],
+        environment_path=environment,
+        options=ctx.obj["options"]
+    )
+
+    if list_path:
+        with open(list_path, 'w') as list_file_obj:
+            migrator.generate_import_list(env, list_file_obj)
+    else:
+        migrator.generate_import_list(env)
+
+
 @cli.command(name="import-env")
 @sceptre_cli.environment_options
 @click.pass_context
