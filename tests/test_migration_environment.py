@@ -95,6 +95,11 @@ class TestMigrationEnvironment(object):
             'fake-sceptre-dir/reverse_resolvers'
         )
 
+    def test_get_internal_stack(self):
+        result = \
+            self.migration_environment.get_internal_stack("fake-stack-name")
+        assert result is None
+
 
 class TestMigrationEnvironment__reverse_env_config(object):
 
@@ -119,9 +124,9 @@ class TestMigrationEnvironment__reverse_env_config(object):
         assert self.migration_environment.environment_config == \
             self.mock_config
         assert self.migration_environment._reversed_env_config == {
-            'my-special-profile': '{{ preprod_aws_profile }}',
-            'us-west-2': '{{ preprod_region }}',
-            'vpc-abc123': '{{ preprod_vpc_id }}'
+            'my-special-profile': '{{ var.preprod_aws_profile }}',
+            'us-west-2': '{{ var.preprod_region }}',
+            'vpc-abc123': '{{ var.preprod_vpc_id }}'
         }
         assert self.migration_environment._config_re_pattern\
             .split('|').sort() == \
@@ -133,4 +138,5 @@ class TestMigrationEnvironment__reverse_env_config(object):
         result = self.migration_environment._reverse_env_config(
             'my-bucket-vpc-abc123-us-west-2'
         )
-        assert 'my-bucket-{{ preprod_vpc_id }}-{{ preprod_region }}' == result
+        assert result ==\
+            'my-bucket-{{ var.preprod_vpc_id }}-{{ var.preprod_region }}'
