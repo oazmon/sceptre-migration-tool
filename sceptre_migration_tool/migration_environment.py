@@ -15,7 +15,7 @@ class MigrationEnvironment(object):
         self.connection_manager = connection_manager
         self.environment_config = environment_config
         self._reversed_env_config = {
-            str(v): "{{ " + str(k) + " }}"
+            str(v): "{{ var." + str(k) + " }}"
             for k, v
             in self.environment_config['user_variables'].items()
         }
