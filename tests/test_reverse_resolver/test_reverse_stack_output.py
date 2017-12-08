@@ -164,36 +164,36 @@ class TestReverseStackOutput(object):
         mock_build_internal.assert_not_called()
         mock_build_external.assert_not_called()
 
-    @patch("sceptre_migration_tool.reverse_resolvers.reverse_stack_output."
-           "ReverseStackOutput._build_external_stack_lookup")
-    @patch("sceptre_migration_tool.reverse_resolvers.reverse_stack_output."
-           "ReverseStackOutput._build_internal_stack_lookup")
-    def test__build_reverse_lookup__internal_stack(
-            self, mock_build_internal, mock_build_external
-    ):
-        mock_get_internal_stack = Mock()
-        mock_get_internal_stack.return_value = 'fake-internal-stack-name'
-        self.reverse_stack_output.migration_environment.get_internal_stack =\
-            mock_get_internal_stack
-        stack = {
-            'StackName': 'fake-stack-name',
-            'Outputs': [
-                {
-                    'OutputKey': 'fake-key1',
-                    'OutputValue': 'value1'
-                },
-                {
-                    'OutputKey': 'fake-key2',
-                    'OutputValue': 'value2'
-                }
-            ]
-        }
-        self.reverse_stack_output._build_reverse_lookup(stack)
-        mock_build_internal.assert_called_once_with(
-            'fake-internal-stack-name',
-            stack['Outputs']
-        )
-        mock_build_external.assert_not_called()
+#     @patch("sceptre_migration_tool.reverse_resolvers.reverse_stack_output."
+#            "ReverseStackOutput._build_external_stack_lookup")
+#     @patch("sceptre_migration_tool.reverse_resolvers.reverse_stack_output."
+#            "ReverseStackOutput._build_internal_stack_lookup")
+#     def test__build_reverse_lookup__internal_stack(
+#             self, mock_build_internal, mock_build_external
+#     ):
+#         mock_get_internal_stack = Mock()
+#         mock_get_internal_stack.return_value = 'fake-internal-stack-name'
+#         self.reverse_stack_output.migration_environment.get_internal_stack =\
+#             mock_get_internal_stack
+#         stack = {
+#             'StackName': 'fake-stack-name',
+#             'Outputs': [
+#                 {
+#                     'OutputKey': 'fake-key1',
+#                     'OutputValue': 'value1'
+#                 },
+#                 {
+#                     'OutputKey': 'fake-key2',
+#                     'OutputValue': 'value2'
+#                 }
+#             ]
+#         }
+#         self.reverse_stack_output._build_reverse_lookup(stack)
+#         mock_build_internal.assert_called_once_with(
+#             'fake-internal-stack-name',
+#             stack['Outputs']
+#         )
+#         mock_build_external.assert_not_called()
 
     @patch("sceptre_migration_tool.reverse_resolvers.reverse_stack_output."
            "ReverseStackOutput._build_external_stack_lookup")

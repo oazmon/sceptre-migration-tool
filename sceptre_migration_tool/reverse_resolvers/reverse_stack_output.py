@@ -85,14 +85,14 @@ class ReverseStackOutput(ReverseResolver):
     def _build_reverse_lookup(self, stack):
         if 'Outputs' not in stack or not stack['Outputs']:
             return
-        internal_stack_name = \
-            self.migration_environment.get_internal_stack(stack['StackName'])
-        if internal_stack_name:
-            self._build_internal_stack_lookup(
-                internal_stack_name,
-                stack['Outputs']
-            )
-        else:
+#         internal_stack_name = \
+#             self.migration_environment.get_internal_stack(stack['StackName'])
+#         if internal_stack_name:
+#             self._build_internal_stack_lookup(
+#                 internal_stack_name,
+#                 stack['Outputs']
+#             )
+#         else:
             self._build_external_stack_lookup(
                 stack['StackName'],
                 stack['Outputs']
