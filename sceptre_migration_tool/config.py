@@ -131,7 +131,7 @@ class ConfigFileWriter(object):
                     suggested_value = \
                         self.migration_environment.suggest(value)
                     print(
-                        "  {}: '{}'".format(key, suggested_value),
+                        "  {}: {}".format(key, suggested_value),
                         file=self.config_fobj
                     )
 

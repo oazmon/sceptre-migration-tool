@@ -176,19 +176,19 @@ class TestConfig(object):
                 file=mock_open.return_value.__enter__.return_value
             ),
             call(
-                "  fake-key1: no-default-value",
+                "  fake-key1: 'no-default-value'",
                 file=mock_open.return_value.__enter__.return_value
             ),
             call(
-                "  fake-key2: mismatch-default-value",
+                "  fake-key2: 'mismatch-default-value'",
                 file=mock_open.return_value.__enter__.return_value
             ),
             call(
-                "  #fake-key3: match-default-value",
+                "  #fake-key3: 'match-default-value'",
                 file=mock_open.return_value.__enter__.return_value
             ),
             call(
-                "  fake-key4: !Ref ref-value",
+                "  fake-key4: '!Ref ref-value'",
                 file=mock_open.return_value.__enter__.return_value
             ),
             call(

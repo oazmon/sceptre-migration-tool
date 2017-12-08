@@ -127,16 +127,20 @@ class MigrationEnvironment(object):
 
     def suggest(self, value):
         if value in self._reversed_env_config:
-            return self._reversed_env_config[value]
-        resolution = value
+            suggestion = "'" + self._reversed_env_config[value] + "'"
+        else:
+            suggestion = self._scan_resolvers_for_suggestion(value)
+            suggestion = self._reverse_env_config(suggestion) \
+                if suggestion else "'" + value + "'"
+        self.logger.debug("Resolution for '%s' is %s", value, suggestion)
+        return suggestion
+
+    def _scan_resolvers_for_suggestion(self, value):
         for reverse_resolver in self.reverse_resolver_list:
             suggestion = reverse_resolver.suggest(value)
             if suggestion:
-                resolution = suggestion
-                break
-        resolution = self._reverse_env_config(resolution)
-        self.logger.debug("Resolution for '%s' is '%s'", value, resolution)
-        return resolution
+                return suggestion
+        return None
 
     def _reverse_env_config(self, value):
         def reverse(m):

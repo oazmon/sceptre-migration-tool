@@ -55,7 +55,7 @@ class ReverseExports(ReverseResolver):
                 else:
                     key = export["Value"]
                     export_key = export["Name"]
-                    exports[key] = '!stack_export ' + export_key
+                    exports[key] = "!stack_export '" + export_key + "'"
             if 'NextToken' in response \
                     and response['NextToken'] is not None:
                 list_exports_kwargs = {'NextToken': response['NextToken']}

@@ -82,8 +82,8 @@ class TestReverseExports(object):
         ]
         result = self.reverse_exporter._get_exports()
         assert result == {
-            'fake-value1': '!stack_export fake-key1',
-            'fake-value2': '!stack_export fake-key2'
+            'fake-value1': "!stack_export 'fake-key1'",
+            'fake-value2': "!stack_export 'fake-key2'"
         }
         assert 2 == self.mock_connection_manager.call.call_count
         self.mock_connection_manager.call.assert_any_call(

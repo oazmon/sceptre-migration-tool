@@ -57,8 +57,8 @@ class TestReverseStackOutput(object):
         )
         assert reverse_lookup == {
                 'value1': (
-                    'fake-stack-name',
-                    '!fake-resolver fake-stack-name::fake-key1'
+                    "fake-stack-name",
+                    "!fake-resolver 'fake-stack-name::fake-key1'"
                 )
             }
 
@@ -202,10 +202,10 @@ class TestReverseStackOutput(object):
     def test__build_reverse_lookup__external_stack(
             self, mock_build_internal, mock_build_external
     ):
-        mock_get_internal_stack = Mock()
-        mock_get_internal_stack.return_value = None
-        self.reverse_stack_output.migration_environment.get_internal_stack =\
-            mock_get_internal_stack
+        mock_get_external_stack = Mock()
+        mock_get_external_stack.return_value = None
+        self.reverse_stack_output.migration_environment.get_external_stack =\
+            mock_get_external_stack
         stack = {
             'StackName': 'fake-stack-name',
             'Outputs': [

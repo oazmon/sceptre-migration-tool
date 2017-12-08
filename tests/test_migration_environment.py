@@ -91,7 +91,7 @@ class TestMigrationEnvironment(object):
     def test_suggest__no_resolvers(self):
         self.migration_environment._reverse_resolver_list = []
         result = self.migration_environment.suggest('value')
-        assert result == 'value'
+        assert result == "'value'"
 
     def test_suggest(self):
         def _make_reverse_resolver(return_value):
@@ -111,7 +111,7 @@ class TestMigrationEnvironment(object):
             'fake-reversal'
         self.migration_environment._reverse_resolver_list = []
         result = self.migration_environment.suggest('value')
-        assert result == 'fake-reversal'
+        assert result == "'fake-reversal'"
 
     def test_reverse_resolver_list__pre_defined(self):
         self.migration_environment._reverse_resolver_list = 'fake-list'
