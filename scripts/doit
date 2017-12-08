@@ -1,0 +1,11 @@
+:
+(
+  cd ../config;
+  rm -f $(find . -type f ! -name config.yaml)
+)
+(
+  cd /Users/oazmon/git/sceptre-migration-tool
+  pip install -e .
+)
+#export DEBUG=1
+./migrate.sh import-list --list-path import-list.txt
