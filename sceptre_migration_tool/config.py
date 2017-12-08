@@ -124,14 +124,14 @@ class ConfigFileWriter(object):
                 if 'Default' in template_parameter \
                         and value == template_parameter['Default']:
                     print(
-                        '  #{}: {}'.format(key, value),
+                        "  #{}: '{}'".format(key, value),
                         file=self.config_fobj
                     )
                 else:
                     suggested_value = \
                         self.migration_environment.suggest(value)
                     print(
-                        '  {}: {}'.format(key, suggested_value),
+                        "  {}: '{}'".format(key, suggested_value),
                         file=self.config_fobj
                     )
 
