@@ -23,7 +23,7 @@ class TestTemplate(object):
         environment_config = self.MockConfig()
         environment_config.sceptre_dir = 'fake-spectre-dir'
         environment_config['user_variables'] = {}
-        self.reverse_resolution_service = MigrationEnvironment(
+        self.migration_environment = MigrationEnvironment(
             connection_manager, environment_config)
 
     @patch("sceptre_migration_tool.template._write_template")
@@ -38,12 +38,12 @@ class TestTemplate(object):
         fake_template_body_string = \
             json.dumps(fake_template_body['TemplateBody'])
         mock_connection_manager =\
-            self.reverse_resolution_service.connection_manager
+            self.migration_environment.connection_manager
         mock_connection_manager.call.return_value = fake_template_body
         mock_normalize.return_value = fake_template_body_string
 
         template.import_template(
-            self.reverse_resolution_service,
+            self.migration_environment,
             'fake-aws-stack-name',
             'templates/fake-template-path.json'
         )

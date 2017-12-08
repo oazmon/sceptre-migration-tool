@@ -100,7 +100,8 @@ def import_list(ctx, list_path):
     """
     Import a list of Sceptre stack from AWS Cloudformation.
     """
-    migrator.import_list(ctx.obj["sceptre_dir"], ctx.obj["options"], list_path)
+    with open(list_path, 'r') as fobj:
+        migrator.import_list(ctx.obj["sceptre_dir"], ctx.obj["options"], fobj)
 
 
 @cli.command(name="generate-import-list")

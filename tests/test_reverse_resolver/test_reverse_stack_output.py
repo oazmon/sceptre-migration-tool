@@ -56,7 +56,10 @@ class TestReverseStackOutput(object):
             resolver_name='fake-resolver'
         )
         assert reverse_lookup == {
-                'value1': '!fake-resolver fake-stack-name::fake-key1'
+                'value1': (
+                    'fake-stack-name',
+                    '!fake-resolver fake-stack-name::fake-key1'
+                )
             }
 
     def test__add_to_reverse_lookup__dup(self):
@@ -274,7 +277,7 @@ class TestReverseStackOutput(object):
     def test_suggest__is_internal(self, mock_get_stack_output):
         def _get_stack_output_side_effect():
             self.reverse_stack_output._stack_output = {
-                'fake-value': 'fake-internal-key'
+                'fake-value': ('fake-stack-name', 'fake-internal-key')
             }
             self.reverse_stack_output._stack_output_external = {}
         mock_get_stack_output.side_effect = _get_stack_output_side_effect
@@ -286,15 +289,30 @@ class TestReverseStackOutput(object):
 
     @patch("sceptre_migration_tool.reverse_resolvers.reverse_stack_output."
            "ReverseStackOutput._get_stack_output")
+    def test_suggest__is_internal_and_same_stack(self, mock_get_stack_output):
+        def _get_stack_output_side_effect():
+            self.reverse_stack_output._stack_output = {
+                'fake-value': ('fake-stack-name', 'fake-internal-key')
+            }
+            self.reverse_stack_output._stack_output_external = {}
+            self.reverse_stack_output.migration_environment.config_path = \
+                'fake-stack-name'
+        mock_get_stack_output.side_effect = _get_stack_output_side_effect
+
+        assert self.reverse_stack_output.suggest('fake-value') is None
+
+        mock_get_stack_output.assert_called_once()
+
+    @patch("sceptre_migration_tool.reverse_resolvers.reverse_stack_output."
+           "ReverseStackOutput._get_stack_output")
     def test_suggest__is_external(self, mock_get_stack_output):
         def _get_stack_output_side_effect():
             self.reverse_stack_output._stack_output = {}
             self.reverse_stack_output._stack_output_external = {
-                'fake-value': 'fake-external-key'
+                'fake-value': ('fake-stack-name', 'fake-external-key')
             }
         mock_get_stack_output.side_effect = _get_stack_output_side_effect
-
-        assert self.reverse_stack_output.suggest('fake-value') ==\
-            'fake-external-key'
+        result = self.reverse_stack_output.suggest('fake-value')
+        assert result == 'fake-external-key'
 
         mock_get_stack_output.assert_called_once()

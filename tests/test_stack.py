@@ -19,7 +19,7 @@ class TestStack(object):
         environment_config = self.MockConfig()
         environment_config['sceptre_dir'] = 'fake-spectre-dir'
         environment_config['user_variables'] = {}
-        self.reverse_resolution_service = MigrationEnvironment(
+        self.migration_environment = MigrationEnvironment(
             connection_manager, environment_config)
 
     @patch("sceptre_migration_tool.stack.Stack")
@@ -28,15 +28,15 @@ class TestStack(object):
     def test_import_stack(self, mock_template, mock_config, mock_stack):
         mock_template.return_value = Mock()
         mock_connection_manager =\
-            self.reverse_resolution_service.connection_manager
+            self.migration_environment.connection_manager
         mock_environment_config =\
-            self.reverse_resolution_service.environment_config
+            self.migration_environment.environment_config
         mock_connection_manager.call.return_value = {
             'TemplateBody': 'fake-body'
         }
 
         result = stack.import_stack(
-            self.reverse_resolution_service,
+            self.migration_environment,
             'fake-aws-stack-name',
             'fake-template-path.yaml',
             'fake-config-path'
@@ -44,13 +44,13 @@ class TestStack(object):
         assert result is not None
 
         mock_template.assert_called_once_with(
-            self.reverse_resolution_service,
+            self.migration_environment,
             'fake-aws-stack-name',
             'fake-template-path.yaml'
         )
 
         mock_config.assert_called_once_with(
-            self.reverse_resolution_service,
+            self.migration_environment,
             'fake-aws-stack-name',
             'fake-config-path',
             mock_template.return_value

@@ -30,11 +30,26 @@ class TestReverseIntuitAmi(object):
             .environment_config == self.mock_environment_config
         assert self.reverse_intuit_ami.precendence() == 90
 
-    def test_suggest(self):
+    def test_suggest1(self):
         assert self.reverse_intuit_ami.suggest("value") is None
+
+    def test_suggest2(self):
         assert self.reverse_intuit_ami.suggest("ami") is None
+
+    def test_suggest3(self):
         assert self.reverse_intuit_ami.suggest("ami-") is None
+
+    def test_suggest4(self):
         assert self.reverse_intuit_ami.suggest(" ami-1") is None
+
+    def test_suggest5(self):
         assert self.reverse_intuit_ami.suggest("ami-1 ") is None
+
+    def test_suggest6(self):
         assert self.reverse_intuit_ami.suggest("ami-1 1") is None
+
+    def test_suggest7(self):
         assert self.reverse_intuit_ami.suggest("ami-1") == '!intuit_ami'
+
+    def test_suggest8(self):
+        assert self.reverse_intuit_ami.suggest("ami-6f46da0f") == '!intuit_ami'

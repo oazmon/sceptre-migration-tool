@@ -19,13 +19,13 @@ logger = logging.getLogger(__name__)
 
 
 def import_stack(
-        reverse_resolution_service,
+        migration_environment,
         aws_stack_name,
         template_path,
         config_path):
 
     template = import_template(
-        reverse_resolution_service,
+        migration_environment,
         aws_stack_name,
         template_path
     )
@@ -34,7 +34,7 @@ def import_stack(
                 " into '%s'", config_path, aws_stack_name, template_path)
 
     import_config(
-        reverse_resolution_service,
+        migration_environment,
         aws_stack_name,
         config_path,
         template
@@ -48,6 +48,6 @@ def import_stack(
 
     return Stack(
             name=config_path,
-            environment_config=reverse_resolution_service.environment_config,
-            connection_manager=reverse_resolution_service.connection_manager
+            environment_config=migration_environment.environment_config,
+            connection_manager=migration_environment.connection_manager
         )

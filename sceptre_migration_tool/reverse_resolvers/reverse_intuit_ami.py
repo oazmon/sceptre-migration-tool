@@ -17,4 +17,11 @@ class ReverseIntuitAmi(ReverseResolver):
         return 90
 
     def suggest(self, value):
-        return '!intuit_ami' if re.match('ami-[0-9af]+$', value) else None
+        suggestion = '!intuit_ami' \
+            if re.match('ami-[0-9a-f]+$', value) else None
+        self.logger.debug(
+            "IntuitAmi Suggestion for '%s' is '%s'",
+            value,
+            suggestion
+        )
+        return suggestion

@@ -32,7 +32,7 @@ class ReverseResolver():
         An integer between 1 and 99 (inclusive) which indicates precedence
         of the reverse resolver. Lower values indicate higher precedence.
         """
-        pass
+        pass  # pragma: no cover
 
     @abc.abstractmethod
     def suggest(self, argument):

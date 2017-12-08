@@ -19,16 +19,19 @@ from . import stack
 from .migration_environment import MigrationEnvironment
 
 
+import_stack_list = []
+
+
 def import_stack(env, aws_stack_name, sceptre_stack_path, template_path):
     config_path = "/".join([env.path, sceptre_stack_path])
 
     logger = logging.getLogger(__name__)
     logger.info("%s - Importing stack", config_path)
 
-    reverse_resolution_service = _create_reverse_resolution_service(env)
+    migration_environment = _create_migration_environment(env)
 
     stack.import_stack(
-        reverse_resolution_service=reverse_resolution_service,
+        migration_environment=migration_environment,
         aws_stack_name=aws_stack_name,
         template_path=template_path,
         config_path=config_path
@@ -41,18 +44,18 @@ def import_env(env):
     logger = logging.getLogger(__name__)
     logger.info("%s - Importing environment", env.path)
 
-    reverse_resolution_service = _create_reverse_resolution_service(env)
+    migration_environment = _create_migration_environment(env)
 
     describe_stacks_kwargs = {}
     while True:
-        response = reverse_resolution_service.connection_manager.call(
+        response = migration_environment.connection_manager.call(
             service='cloudformation',
             command='describe_stacks',
             kwargs=describe_stacks_kwargs
         )
         for aws_stack in response['Stacks']:
             stack.import_stack(
-                reverse_resolution_service=reverse_resolution_service,
+                migration_environment=migration_environment,
                 aws_stack_name=aws_stack['StackName'],
                 template_path=os.path.join(
                     'templates',
@@ -68,42 +71,44 @@ def import_env(env):
     logger.info("%s - Environment imported", env.path)
 
 
-def import_list(sceptre_dir, options, list_file):
-    logger = logging.getLogger(__name__)
-    logger.info("Importing from list: %s", list_file)
+def _ensure_env_dir_exists(sceptre_dir, env_path):
+    abs_path = os.path.join(
+        sceptre_dir,
+        env_path.replace("\\", "/")
+    )
+    if(not os.path.isdir(abs_path)):
+        os.makedirs(abs_path)
 
-    with open(list_file, 'r') as reader:
-        for line in reader.readlines():
-            if line.startswith('#'):
-                next(line)
-            parts = line.split()
-            if len(parts) < 3:
-                next(line)
-            import_stack(
-                Environment(
-                    sceptre_dir=sceptre_dir,
-                    environment_path=parts[0],
-                    options=options
-                ),
-                parts[2],
-                parts[1],
-                parts[3] if len(parts) > 3 else os.path.join(
-                        "templates",
-                        "aws-import",
-                        parts[2] + ".yaml"
-                    )
-            )
+
+def import_list(sceptre_dir, options, list_fobj):
+    logger = logging.getLogger(__name__)
+    logger.info("Importing from list")
+
+    global import_stack_list
+    import_stack_list = MigrationEnvironment.read_import_stack_list(list_fobj)
+
+    for item in import_stack_list:
+        import_stack(
+            Environment(
+                sceptre_dir=sceptre_dir,
+                environment_path=item[MigrationEnvironment.PART_ENV],
+                options=options
+            ),
+            item[MigrationEnvironment.PART_AWS_STACK_NAME],
+            item[MigrationEnvironment.PART_SCEPTRE_STACK_NAME],
+            item[MigrationEnvironment.PART_TEMPLATE_PATH]
+        )
 
 
 def generate_import_list(env, list_file_obj=sys.stdout):
     logger = logging.getLogger(__name__)
     logger.info("Generating Import List")
 
-    reverse_resolution_service = _create_reverse_resolution_service(env)
+    migration_environment = _create_migration_environment(env)
 
     describe_stacks_kwargs = {}
     while True:
-        response = reverse_resolution_service.connection_manager.call(
+        response = migration_environment.connection_manager.call(
             service='cloudformation',
             command='describe_stacks',
             kwargs=describe_stacks_kwargs
@@ -129,7 +134,7 @@ def _output_list_line(env_path, aws_stack, list_file_obj):
     )
 
 
-def _create_reverse_resolution_service(env):
+def _create_migration_environment(env):
     env_config = env._get_config()
 
     connection_manager = ConnectionManager(
@@ -138,4 +143,7 @@ def _create_reverse_resolution_service(env):
         profile=env_config.get("profile")
     )
 
-    return MigrationEnvironment(connection_manager, env_config)
+    migration_environment = \
+        MigrationEnvironment(connection_manager, env_config, import_stack_list)
+
+    return migration_environment

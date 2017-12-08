@@ -32,9 +32,9 @@ class TestConfig(object):
         environment_config = self.MockConfig()
         environment_config.sceptre_dir = 'fake-spectre-dir'
         environment_config["user_variables"] = {}
-        self.reverse_resolution_service = MigrationEnvironment(
+        self.migration_environment = MigrationEnvironment(
             connection_manager, environment_config)
-        self.reverse_resolution_service._reverse_resolver_list = []
+        self.migration_environment._reverse_resolver_list = []
 
     @patch("sceptre_migration_tool.config.os.path.isfile")
     def test_import_config__exists(
@@ -43,7 +43,7 @@ class TestConfig(object):
         mock_isfile.return_value = True
         with pytest.raises(ImportFailureError):
             config.import_config(
-                reverse_resolution_service=self.reverse_resolution_service,
+                migration_environment=self.migration_environment,
                 aws_stack_name="fake-aws-stack-name",
                 config_path="environment-path/fake-stack",
                 template=Template('fake-path', [])
@@ -55,7 +55,7 @@ class TestConfig(object):
     def test_import_config__empty_stack(
         self, mock_isfile, mock_open, mock_print
     ):
-        self.reverse_resolution_service.connection_manager\
+        self.migration_environment.connection_manager\
             .call.return_value = {'Stacks': [
                 {
                 }
@@ -65,7 +65,7 @@ class TestConfig(object):
         fake_template = Template('fake-path', [])
         fake_template.relative_template_path = 'fake-relative-path'
         config.import_config(
-            reverse_resolution_service=self.reverse_resolution_service,
+            migration_environment=self.migration_environment,
             aws_stack_name="fake-aws-stack-name",
             config_path="environment-path/fake-stack",
             template=fake_template
@@ -109,10 +109,12 @@ class TestConfig(object):
                 },
                 'fake-key3': {
                     'Default': 'match-default-value'
+                },
+                'fake-key4': {
                 }
             }
         })
-        self.reverse_resolution_service.connection_manager\
+        self.migration_environment.connection_manager\
             .call.return_value = {'Stacks': [
                 {
                     'EnableTerminationProtection': True,
@@ -129,6 +131,10 @@ class TestConfig(object):
                         {
                             'ParameterKey': 'fake-key3',
                             'ParameterValue': 'match-default-value'
+                        },
+                        {
+                            'ParameterKey': 'fake-key4',
+                            'ParameterValue': '!Ref ref-value'
                         }
                     ],
                     'Tags': [
@@ -142,7 +148,7 @@ class TestConfig(object):
 
         mock_isfile.return_value = False
         config.import_config(
-            reverse_resolution_service=self.reverse_resolution_service,
+            migration_environment=self.migration_environment,
             aws_stack_name="fake-aws-stack-name",
             config_path="environment-path/fake-stack",
             template=mock_template
@@ -182,11 +188,15 @@ class TestConfig(object):
                 file=mock_open.return_value.__enter__.return_value
             ),
             call(
+                "  fake-key4: !Ref ref-value",
+                file=mock_open.return_value.__enter__.return_value
+            ),
+            call(
                 "stack_tags:",
                 file=mock_open.return_value.__enter__.return_value
             ),
             call(
-                "  fake-tag-key: fake-tag-value",
+                "  \"fake-tag-key\": \"fake-tag-value\"",
                 file=mock_open.return_value.__enter__.return_value
             )
         ]

@@ -17,7 +17,7 @@ from sceptre.exceptions import UnsupportedTemplateFileTypeError
 from .exceptions import ImportFailureError
 
 
-def import_template(reverse_resolution_service, aws_stack_name, template_path):
+def import_template(migration_environment, aws_stack_name, template_path):
     """
     Saves a template imported from AWS CloudFormation.
 
@@ -28,7 +28,7 @@ def import_template(reverse_resolution_service, aws_stack_name, template_path):
     :raises: UnsupportedTemplateFileTypeError
     """
     abs_template_path = os.path.join(
-        reverse_resolution_service.environment_config.sceptre_dir,
+        migration_environment.environment_config.sceptre_dir,
         template_path
     )
 
@@ -38,7 +38,7 @@ def import_template(reverse_resolution_service, aws_stack_name, template_path):
         abs_template_path
     )
 
-    response = reverse_resolution_service.connection_manager.call(
+    response = migration_environment.connection_manager.call(
         service='cloudformation',
         command='get_template',
         kwargs={
@@ -92,11 +92,6 @@ def _write_template(path, body):
     else:
         with open(path, 'r') as template_file:
             existing_body = template_file.read()
-
-        def default_ctor(loader, tag_suffix, node):
-            return tag_suffix + ' ' + str(node.value)
-
-        yaml.add_multi_constructor('', default_ctor)
         if yaml.load(existing_body) != yaml.load(body):
             raise ImportFailureError(
                 "Unable to import template. "

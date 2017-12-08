@@ -3,9 +3,7 @@ import logging
 import os
 
 from click.testing import CliRunner
-# from mock import Mock
 from mock import patch, sentinel
-# import pytest
 
 from sceptre_migration_tool import cli
 
@@ -110,9 +108,10 @@ class TestCli(object):
         )
 
     @patch("sceptre_migration_tool.cli.migrator.import_list")
+    @patch("sceptre_migration_tool.cli.open")
     @patch("sceptre_migration_tool.cli.os.getcwd")
     def test_import_list(
-            self, mock_getcwd, mock_import_list
+            self, mock_getcwd, mock_open, mock_import_list
     ):
         mock_getcwd.return_value = sentinel.cwd
         result = self.runner.invoke(cli.cli, [
@@ -120,7 +119,9 @@ class TestCli(object):
         ])
         assert 0 == result.exit_code
         mock_import_list.assert_called_once_with(
-            sentinel.cwd, {}, 'fake-list-path'
+            sentinel.cwd,
+            {},
+            mock_open.return_value.__enter__.return_value
         )
 
     @patch("sceptre_migration_tool.cli.migrator.generate_import_list")
@@ -140,3 +141,19 @@ class TestCli(object):
             mock_import_env.return_value,
             mock_open.return_value.__enter__.return_value
         )
+
+    @patch("sceptre_migration_tool.cli.migrator.generate_import_list")
+    @patch("sceptre_migration_tool.cli.open")
+    @patch("sceptre_migration_tool.cli.Environment")
+    @patch("sceptre_migration_tool.cli.os.getcwd")
+    def test_generate_import_list__to_stdout(
+            self, mock_getcwd, mock_import_env,
+            mock_open, mock_generate_import_list
+    ):
+        mock_getcwd.return_value = sentinel.cwd
+        result = self.runner.invoke(cli.cli, [
+            "generate-import-list", "dev"
+        ])
+        assert 0 == result.exit_code
+        mock_open.assert_not_called()
+        mock_generate_import_list.assert_called_once()

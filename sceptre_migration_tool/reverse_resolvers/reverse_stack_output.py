@@ -20,23 +20,39 @@ class ReverseStackOutput(ReverseResolver):
     def suggest(self, value):
         if self._stack_output is None:
             self._get_stack_output()
+
         if value in self._stack_output:
-            suggestion = self._stack_output[value]
+            stack_name, suggestion = self._stack_output[value]
+            if stack_name == self.migration_environment.config_path:
+                suggestion = None
             self.logger.debug(
-                "Internal Stack Suggestion for '%s' is '%s'",
+                "Omer %s - Internal Stack Suggestion for '%s' is '%s'",
+                self.migration_environment.config_path,
                 value,
                 suggestion
             )
+            self.logger.debug(
+                "Omer stack_name=%s config_path=%s",
+                stack_name,
+                self.migration_environment.config_path
+            )
             return suggestion
+
         if value in self._stack_output_external:
-            suggestion = self._stack_output_external[value]
+            stack_name, suggestion = self._stack_output_external[value]
             self.logger.debug(
-                "External Stack Suggestion for '%s' is '%s'",
+                "%s - External Stack Suggestion for '%s' is '%s'",
+                self.migration_environment.config_path,
                 value,
                 suggestion
             )
             return suggestion
-        self.logger.debug("Stack Suggestion for '%s' is 'NONE'", value)
+
+        self.logger.debug(
+            "%s - Stack Suggestion for '%s' is 'None'",
+            self.migration_environment.config_path,
+            value
+        )
         return None
 
     def _get_stack_output(self):
@@ -101,7 +117,7 @@ class ReverseStackOutput(ReverseResolver):
             )
 
     def _add_to_reverse_lookup(
-            self, stack_name, output, target_dict, resolver_name
+        self, stack_name, output, target_dict, resolver_name
     ):
         if 'ExportName' in output:
             return
@@ -114,6 +130,7 @@ class ReverseStackOutput(ReverseResolver):
                 stack_name, key, value
             )
             return
-        target_dict[value] = '!{} {}::{}'.format(
-                resolver_name, stack_name, key
-            )
+        target_dict[value] = (
+            stack_name,
+            '!{} {}::{}'.format(resolver_name, stack_name, key)
+        )
