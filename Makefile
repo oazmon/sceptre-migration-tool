@@ -131,5 +131,5 @@ install: clean
 
 install-dev: clean
 	pip3.6 install -r requirements.txt
-	pip install -e .
+	pip3.6 install -e .
 	@echo "To install the documentation dependencies, run:\ncd docs\nmake install"
