@@ -11,9 +11,10 @@ def before_all(context):
         logging.basicConfig(level=logging.DEBUG)
 
     context.uuid = uuid.uuid1().hex
-    context.project_code = "sceptre-migration-tool-integration-tests-{0}".format(
-        context.uuid
-    )
+    context.project_code = \
+        "sceptre-migration-tool-integration-tests-{0}".format(
+            context.uuid
+        )
     context.sceptre_dir = os.path.join(
         os.getcwd(), "integration-tests", "sceptre-project"
     )

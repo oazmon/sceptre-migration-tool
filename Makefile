@@ -9,7 +9,7 @@ except:
 webbrowser.open("file://" + pathname2url(os.path.abspath(sys.argv[1])))
 endef
 export BROWSER_PYSCRIPT
-BROWSER := python -c "$$BROWSER_PYSCRIPT"
+BROWSER := python3.6 -c "$$BROWSER_PYSCRIPT"
 
 help:
 	@echo "clean - remove all build, test, coverage and Python artifacts"
@@ -29,7 +29,7 @@ help:
 clean: clean-build clean-pyc clean-test
 
 clean-build:
-	rm -fr build/
+	rm -fr build.d/
 	rm -fr dist/
 	rm -fr .eggs/
 	find . -name '*.egg-info' -exec rm -fr {} +
@@ -49,8 +49,8 @@ clean-test:
 	rm -f test-results.xml
 
 lint:
-	flake8 sceptre_migration_tool tests
-	python setup.py check -r -s -m
+	flake8 sceptre_migration_tool tests integration-tests
+	python3.6 setup.py check -r -s -m
 
 test:
 	pytest
@@ -60,6 +60,9 @@ test-all:
 
 test-integration: install
 	behave integration-tests/
+
+test-integration-wip: install
+	behave -w integration-tests/
 
 coverage-ci:
 	coverage erase
@@ -116,14 +119,17 @@ serve-docs-commit: docs-commit
 	$(MAKE) -C docs serve-commit
 
 dist: clean
-	python setup.py sdist
-	python setup.py bdist_wheel
+	python3.6 setup.py sdist
+	python3.6 setup.py bdist_wheel build -b build.d
 	ls -l dist
 
+install-make-tools:
+	pip3.6 install -r make-requirements.txt --user
+
 install: clean
-	pip install .
+	pip3.6 install .
 
 install-dev: clean
-	pip install -r requirements.txt
+	pip3.6 install -r requirements.txt
 	pip install -e .
 	@echo "To install the documentation dependencies, run:\ncd docs\nmake install"

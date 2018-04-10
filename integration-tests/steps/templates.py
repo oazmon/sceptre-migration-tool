@@ -1,9 +1,6 @@
-from behave import *
+from behave import given, then
 import os
-import imp
 import yaml
-from sceptre.environment import Environment
-from botocore.exceptions import ClientError
 
 
 def set_template_path(context, stack_name, template_name):
@@ -20,7 +17,7 @@ def set_template_path(context, stack_name, template_name):
         yaml.safe_dump(stack_config, config_file, default_flow_style=False)
 
 
-@given('template "{template_name}" does not exist')
+@given('template "{template_name}" does not exist')  # noqa: F811
 def step_impl(context, template_name):
     filepath = os.path.join(
         context.sceptre_dir, template_name
@@ -28,33 +25,43 @@ def step_impl(context, template_name):
     os.remove(filepath) if os.path.isfile(filepath) else None
 
 
-@given('the template for stack "{stack_name}" is "{template_name}"')
+@given('the template for stack "{stack_name}" '  # noqa: F811
+       'is "{template_name}"')
 def step_impl(context, stack_name, template_name):
     set_template_path(context, stack_name, template_name)
 
 
-@given('template "{template_name}" exists')
+@given('template "{template_name}" exists')  # noqa: F811
 def step_impl(context, template_name):
     filepath = os.path.join(
         context.sceptre_dir, template_name
     )
-    assert os.path.exists(filepath), "template '{}' not found at '{}'".format(template_name, filepath)
+    assert os.path.exists(
+        filepath
+    ), "template '{}' not found at '{}'".format(
+        template_name,
+        filepath
+    )
     context.template_file_mtime = os.stat(filepath).st_mtime
 
 
-@then('template "{template_name}" exists')
+@then('template "{template_name}" exists')  # noqa: F811
 def step_impl(context, template_name):
     filepath = os.path.join(
         context.sceptre_dir, template_name
     )
-    assert os.path.exists(filepath), "template '{}' not found at '{}'".format(template_name, filepath)
+    assert os.path.exists(
+        filepath
+    ), "template '{}' not found at '{}'".format(
+        template_name,
+        filepath
+    )
 
-    
-@then('template "{template_name}" is unchanged')
+
+@then('template "{template_name}" is unchanged')  # noqa: F811
 def step_impl(context, template_name):
     filepath = os.path.join(
         context.sceptre_dir, template_name
     )
-    assert context.template_file_mtime == os.stat(filepath).st_mtime, "template '{}' has been changed.".format(template_name)
-
-    
+    assert context.template_file_mtime == os.stat(filepath).st_mtime, \
+        "template '{}' has been changed.".format(template_name)

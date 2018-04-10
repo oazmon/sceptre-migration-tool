@@ -1,0 +1,11 @@
+--index-url https://artifact.intuit.com/artifactory/api/pypi/pypi-intuit/simple
+behave==1.2.6
+coverage==4.5.1
+docutils==0.14
+flake8==3.5.0
+mock==2.0.0
+pytest==3.5.0
+pytest-runner==4.2
+tox==2.9.1
+troposphere==2.1.2
+wheel==0.30.0

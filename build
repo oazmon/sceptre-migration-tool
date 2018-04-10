@@ -1,0 +1,283 @@
+#!/bin/bash
+###############################################################################
+# This script is used by the CI build system.
+# Human users should use the Makefile
+#
+# @author: oazmon
+###############################################################################
+#
+# determine the script base directory
+SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
+BASE_DIR=${SCRIPT_DIR}
+
+# configure os specific features
+type shred >/dev/null 2>&1
+has_shred=$?
+
+# Setting script to exit on error
+set -e
+
+# -----------------------------------------------------------------------------
+# Initializing variables
+# -----------------------------------------------------------------------------
+# OS Name
+os=`uname`
+
+# Log levels (e.g.: info warn debug trace)
+log_level=(error warn info debug)
+
+if [[ "${log_level[@]}" =~ "trace" ]]; then
+  set -x
+fi
+
+# Relative path to Build directory
+BUILD_DIR=${BASE_DIR}/build-application
+
+# Relative path to application directory
+APPLICATION_DIR=${BASE_DIR}
+# Distribution directory
+APPLICATION_DIST_DIR=${APPLICATION_DIR}/dist
+
+# Get artifact version setup.py
+ARTIFACT_VERSION=`python3.6 ${APPLICATION_DIR}/setup.py --version`
+# Get artifact name from application configuration
+ARTIFACT_ID=`python3.6 ${APPLICATION_DIR}/setup.py --name`
+# PYPI Credentials
+PYPIRC=$HOME/.pypirc
+# Git Credentials
+GITCRED=/tmp/gitcredfile
+
+
+#------------------------------------------------------------------------------
+# Function that logs to standard out like log4j
+# Usage: log "[level]" "[text]"
+#------------------------------------------------------------------------------
+function log() {
+  if [[ "${log_level[@]}" =~ "${1}" ]]; then
+    #echo "`date -u +%Y-%m-%d:%H:%M:%S` | ${1} | ${BASH_SOURCE[1]}:${FUNCNAME[1]}:${BASH_LINENO[0]} | ${2}" 
+    echo "`date -u +%Y-%m-%d:%H:%M:%S` | ${1} | ${2}" 
+  fi
+}
+
+#------------------------------------------------------------------------------
+# Function that echo a command and then executes it
+# Usage: echo_exec [cmd]
+#------------------------------------------------------------------------------
+function echo_exec() {
+    CALL_CMD="$*"
+    log "info" "${CALL_CMD}"
+    ${CALL_CMD}
+}
+
+
+#------------------------------------------------------------------------------
+# Function that runs an echo_exec in the current context and in the specified 
+# directory and returns without changing directories
+# Usage: run_id [directory cmd]
+#------------------------------------------------------------------------------
+function run_in() {
+  pushd . 
+  log "debug"  "Changing to ${1} directory..."
+  cd $1
+  shift 1
+  echo_exec $*
+  log "debug"  "Changing back to previous directory..."
+  popd
+}
+
+#------------------------------------------------------------------------------
+# Publish application WHL, test, and deploy-package artifacts
+#------------------------------------------------------------------------------
+function publish_application_artifacts() {
+    # Publish to nexus only if CICD Service (Jenkins) build
+    if [ -z $BUILD_NUMBER ]; then
+        # This is NOT triggered through CI and NOT running in Jenkins
+        log "info" "-------------------------------------------------------------------------------"
+        log "info" " Skipping 'deploy' since this is not triggered through CI and \${BUILD_NUMBER} is empty"
+        log "info" "-------------------------------------------------------------------------------"
+        exit 0
+    fi
+
+    if [ X"master" != X"$GIT_BRANCH" ]; then
+        # This is the branch from which we release
+        log "info" "-------------------------------------------------------------------------------"
+        log "info" " Skipping 'deploy' since this is not the master branch"
+        log "info" "-------------------------------------------------------------------------------"
+        exit 0
+    fi
+
+    [ -z "${PYPI_USERNAME}" ] && log "error"  "The required PYPI_USERNAME environment variable is not set. Please do: export PYPI_USERNAME && exit 1
+    [ -z "${PYPI_TOKEN}" ] && log "error"  "The required PYPI_TOKEN environment variable is not set. Please do: export PYPI_TOKEN && exit 1
+    
+    cat >${PYPIRC} <<EOF
+[distutils]
+index-servers =
+    local
+ 
+[local]
+repository: https://artifact.intuit.com/artifactory/api/pypi/pypi-local-sceptre
+username: ${PYPI_USERNAME}
+password: ${PYPI_TOKEN}
+EOF
+    # Following is executed by finish function
+    # shred -n 25 -u -z ${PYPIRC}
+
+    log "info" "-------------------------------------------------------------------------------"
+    log "info" " Publishing artifact Python wheel file WHL file to PyPI..."
+    log "info" "-------------------------------------------------------------------------------"
+    python3.6 setup.py bdist_wheel build -b build.d upload -r local
+    
+    log "info" "------------------------------------------------------------------------------"
+    log "info" " Publishing artifact Python wheel file ZIP file to PyPI..."
+    log "info" "-------------------------------------------------------------------------------"
+    python3.6 setup.py sdist upload -r local
+    
+    log "info" "-------------------------------------------------------------------------------"
+    log "info" " Tagging build in git..."
+    log "info" "-------------------------------------------------------------------------------"
+    git config --global push.default simple
+    echo ${GIT_PWD} > ${GITCRED}
+    # Following is executed by finish function
+    # shred -n 25 -u -z ${GITCRED}
+    export SLUSER=$(echo $GIT_PWD | sed 's/^.*\/\///' | sed 's/:.*//')
+    git config --global user.name "$SLUSER" --quiet
+    git config --global user.email "$SLUSER@intuit.com" --quiet
+    git config --global credential.helper "store --file=/tmp/gitcredfile" –quiet
+    TAG=` echo "${BUILDER_NAME}_${GIT_BRANCH}_${ARTIFACT_VERSION}" | tr . _ | tr - _`
+    log "info" "Setting Tag: '${TAG}'"
+    git tag -m "SCM Label from CICD service" -a $TAG -f
+    git push --tag --force   
+
+    log "info" "-------------------------------------------------------------------------------"
+    log "info" " Publishing artifacts is complete"
+    log "info" "-------------------------------------------------------------------------------"
+}
+
+#------------------------------------------------------------------------------
+# General hosting information.  Add as needed to help troubleshoot build issues.
+#------------------------------------------------------------------------------
+function show_hosting_info() {
+    log "info" ":::::::::::::::::::::::: `date +%H:%M:%S` beginning build host information \"$0\""
+
+    # some system info
+    if [ X"$os" = X"Darwin" ]; then
+        log "info" ":::::::::::::::::::::::: hostname for OS/X:"
+        hostname -f
+    else
+        log "info" ":::::::::::::::::::::::: hostname, including FQDN and all IP addresses:"
+        hostname --fqdn
+        hostname -a
+        hostname --all-ip-addresses
+    fi
+    log "info" ":::::::::::::::::::::::: uname -a"
+    uname -a
+    if [ -r "/proc/version" ] ; then
+        log "info" ":::::::::::::::::::::::: contents of /proc/version:"
+        cat /proc/version
+    fi
+    if [ -r "/etc/redhat-release" ] ; then
+        log "info" ":::::::::::::::::::::::: contents of /etc/redhat-release:"
+        cat /etc/redhat-release
+    elif [ -r "/etc/os-release" ] ; then
+        log "info" ":::::::::::::::::::::::: contents of /etc/os-release:"
+        cat /etc/os-release
+    elif [ X"$os" = "Linux" ] ; then
+        log "info" ":::::::::::::::::::::::: hmmm.... anything matching /etc/\*-release that might tell us about the OS\?"
+        ls -l /etc/*-release
+    fi
+   
+    echo :::::::::::::::::::::::: pwd, ls -la, df -h
+    pwd
+    pwd -P
+    ls -la
+    df -h
+    
+    echo :::::::::::::::::::::::: uptime, ntpstat, date
+    uptime
+    if ! ntpstat 2>&1 ; then
+        echo problem with ntpstat \($?\)
+    fi
+    date '+%Y-%m-%d %H:%M:%S -- TZ: %Z %:z -- year# %G week# %V day# %j'
+    
+    echo :::::::::::::::::::::::: envars w/o secrets, passwords, or tokens
+    printenv | grep -vi -e pass -e secret -e token | sort
+    
+    echo :::::::::::::::::::::::: about git: which, version, and status
+    which git
+    git --version
+    git status
+    
+    echo :::::::::::::::::::::::: git log --pretty=oneline --abbrev-commit --graph --decorate --max-count=10
+    git log --pretty=oneline --abbrev-commit --graph --decorate --max-count=10 | cat
+    
+    echo :::::::::::::::::::::::: about python: which + version
+    echo "Default Python version:"
+    which python
+    python --version 2>&1
+    echo "Python 2.7 version:"
+    python2.7 --version 2>&1
+    echo "Python 3.6 version:"
+    python3.6 --version 2>&1
+    
+    log "info" ":::::::::::::::::::::::: `date +%H:%M:%S` ending build host information \"$0\""
+
+}
+
+
+function shred_it() {
+    if [ -e ${1} ]; then
+        if [ $has_shred -eq 0 ]; then
+            shred -n 25 -u -z ${1}
+        else
+            rm -fr ${1}
+        fi
+    fi
+}
+
+function finish() {
+    exit_code=$?
+
+    # clean up for publish_application_artifacts
+    shred_it ${GITCRED}
+    shred_it ${PYPIRC}
+    
+    # closing message
+    script_endtime=$(date +"%s")
+    script_diff=$(($script_endtime-$script_startime))
+    log "info" "================================================================================"
+    log "info" ""
+    log "info" ""
+    log "info" "Ending '${BASH_SOURCE[1]} $@'; Duration: $(($script_diff / 3600 ))H:$((($script_diff % 3600) / 60))M:$(($script_diff % 60))S; exit_code=${exit_code}" 
+    log "info" ""
+    log "info" ""
+    log "info" "================================================================================"
+}
+
+#------------------------------------------------------------------------------
+# Main script execution
+#------------------------------------------------------------------------------
+function main() {
+    log "info" "================================================================================"
+    log "info" ""
+    log "info" ""
+    log "info" "STARTING USER BUILD:"
+    log "info" ""
+    log "info" ""
+    log "info" "================================================================================"
+    script_startime=$(date +"%s")
+    log "info" "--------------------------------------------------------------------------------"
+    log "info" "Starting '${BASH_SOURCE[1]} $@'..."
+    log "info" "--------------------------------------------------------------------------------"
+    export PATH=/opt/python/python-2.7.14/bin:/opt/python/python-3.6.4/bin:/home/ibpslave/.local/bin/:$PATH
+    show_hosting_info
+    make clean install-make-tools lint test-all dist
+    publish_application_artifacts
+}
+
+#------------------------------------------------------------------------------
+# Main execution
+#------------------------------------------------------------------------------
+trap finish EXIT
+main ${@}
+
+# >>>>>> End of File <<<<<<

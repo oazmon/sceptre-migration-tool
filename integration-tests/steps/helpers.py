@@ -1,4 +1,4 @@
-from behave import *
+from behave import then
 import os
 import time
 
@@ -10,7 +10,7 @@ from sceptre.exceptions import UnsupportedTemplateFileTypeError
 from sceptre.exceptions import StackDoesNotExistError
 
 
-@then('the user is told "{message}"')
+@then('the user is told "{message}"')  # noqa: F811
 def step_impl(context, message):
     if message == "stack does not exist":
         msg = context.error.response['Error']['Message']
@@ -27,7 +27,7 @@ def step_impl(context, message):
         raise Exception("Step has incorrect message")
 
 
-@then('a "{exception_type}" is raised')
+@then('a "{exception_type}" is raised')  # noqa: F811
 def step_impl(context, exception_type):
     if exception_type == "TemplateSceptreHandlerError":
         assert isinstance(context.error, TemplateSceptreHandlerError)

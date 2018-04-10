@@ -1,4 +1,4 @@
-from behave import *
+from behave import given, when, then
 import time
 import os
 from botocore.exceptions import ClientError
@@ -7,7 +7,7 @@ from helpers import read_template_file, get_cloudformation_stack_name
 from helpers import retry_boto_call
 
 
-@given('stack "{stack_name}" does not exist')
+@given('stack "{stack_name}" does not exist')  # noqa: F811
 def step_impl(context, stack_name):
     full_name = get_cloudformation_stack_name(context, stack_name)
     status = get_stack_status(context, full_name)
@@ -17,7 +17,7 @@ def step_impl(context, stack_name):
     assert (status is None)
 
 
-@given('stack "{stack_name}" exists in "{desired_status}" state')
+@given('stack "{stack_name}" exists in "{desired_status}" state')  # noqa: F811
 def step_impl(context, stack_name, desired_status):
     full_name = get_cloudformation_stack_name(context, stack_name)
 
@@ -45,7 +45,7 @@ def step_impl(context, stack_name, desired_status):
     assert (status == desired_status)
 
 
-@given('stack "{stack_name}" exists using "{template_name}"')
+@given('stack "{stack_name}" exists using "{template_name}"')  # noqa: F811
 def step_impl(context, stack_name, template_name):
     full_name = get_cloudformation_stack_name(context, stack_name)
 
@@ -59,7 +59,7 @@ def step_impl(context, stack_name, template_name):
     assert (status == "CREATE_COMPLETE")
 
 
-@given('stack "{stack_name}" does not exist in config')
+@given('stack "{stack_name}" does not exist in config')  # noqa: F811
 def step_impl(context, stack_name):
     filepath = os.path.join(
         context.sceptre_dir, "config", stack_name + '.yaml'
@@ -67,34 +67,44 @@ def step_impl(context, stack_name):
     os.remove(filepath) if os.path.isfile(filepath) else None
 
 
-@when('the user imports AWS stack "{aws_stack_name}" into Sceptre stack "{stack_name}" and template "{template_name}"')
+@when('the user imports AWS stack "{aws_stack_name}" into '  # noqa: F811
+      'Sceptre stack "{stack_name}" and template "{template_name}"')
 def step_impl(context, aws_stack_name, stack_name, template_name):
-    full_aws_stack_name = get_cloudformation_stack_name(context, aws_stack_name)
+    full_aws_stack_name = get_cloudformation_stack_name(
+        context,
+        aws_stack_name
+    )
     env = Environment(context.sceptre_dir, os.path.dirname(stack_name))
     stack_base_name = os.path.basename(stack_name)
-    context.response = env.import_stack(full_aws_stack_name, stack_base_name, template_name)
+    context.response = env.import_stack(
+        full_aws_stack_name,
+        stack_base_name,
+        template_name
+    )
 
 
-@then('stack "{stack_name}" exists in "{desired_status}" state')
+@then('stack "{stack_name}" exists in "{desired_status}" state')  # noqa: F811
 def step_impl(context, stack_name, desired_status):
     full_name = get_cloudformation_stack_name(context, stack_name)
     status = get_stack_status(context, full_name)
     assert (status == desired_status)
 
 
-@then('stack "{stack_name}" does not exist')
+@then('stack "{stack_name}" does not exist')  # noqa: F811
 def step_impl(context, stack_name):
     full_name = get_cloudformation_stack_name(context, stack_name)
     status = get_stack_status(context, full_name)
     assert (status is None)
 
 
-@then('stack "{stack_name}" file exists in config')
+@then('stack "{stack_name}" file exists in config')  # noqa: F811
 def step_impl(context, stack_name):
     filepath = os.path.join(
         context.sceptre_dir, "config", stack_name + '.yaml'
     )
-    assert os.path.exists(filepath), "stack '{}' not found at '{}'".format(stack_name, filepath)
+    assert os.path.exists(
+        filepath
+    ), "stack '{}' not found at '{}'".format(stack_name, filepath)
 
 
 def get_stack_status(context, stack_name):

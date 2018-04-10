@@ -1,1 +1,2 @@
-sceptre>=1.3.0
+--index-url https://artifact.intuit.com/artifactory/api/pypi/pypi-intuit/simple
+sceptre==1.3.1
